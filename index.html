@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materials to Canvas Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --red:#BA0C2F; --black:#000000; --silver:#5D6770; --white:#FFFFFF;
+  --paper:#F6F6F7; --line:#D5D8DC; --ok:#1E7B3C;
+  --head:'Bitter', Georgia, 'Times New Roman', serif;
+  --body:'Source Sans 3', 'Segoe UI', Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--body);font-size:17px;line-height:1.5;color:var(--black);background:var(--paper)}
+a{color:var(--red)}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+header.top{background:var(--red);color:var(--white);padding:2.2rem 1.25rem 2rem}
+header.top .inner{max-width:900px;margin:0 auto}
+header.top h1{font-family:var(--head);font-weight:800;font-size:clamp(1.9rem,4.5vw,2.8rem);line-height:1.1;margin:0 0 .5rem;letter-spacing:-.01em}
+header.top p{margin:0;max-width:62ch;font-size:1.05rem}
+main{max-width:900px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+.step{display:grid;grid-template-columns:4.2rem 1fr;gap:0 1rem;margin:2.2rem 0}
+.step-num{font-family:var(--head);font-weight:800;font-size:3.4rem;line-height:.9;color:var(--red);text-align:right}
+.step h2{font-family:var(--head);font-weight:700;font-size:1.55rem;margin:.1rem 0 .35rem}
+.step .lede{margin:0 0 1rem;color:var(--silver);max-width:68ch}
+.panel{background:var(--white);border:1px solid var(--line);border-left:5px solid var(--black);padding:1.1rem 1.2rem;margin-bottom:1rem}
+label{display:block;font-weight:600;margin:.6rem 0 .25rem}
+input[type=text],input[type=url],input[type=password],input[type=number],textarea,select{
+  font:inherit;width:100%;padding:.5rem .6rem;border:1.5px solid var(--silver);background:var(--white);color:var(--black);border-radius:0}
+textarea{min-height:5rem;resize:vertical}
+input[type=number]{width:6.5rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.row > input[type=url]{flex:1 1 18rem;width:auto}
+button,.btn{font:inherit;font-weight:700;cursor:pointer;border:2px solid var(--black);background:var(--white);color:var(--black);padding:.45rem .95rem;border-radius:0}
+button:hover{background:var(--paper)}
+button.primary{background:var(--red);border-color:var(--red);color:var(--white)}
+button.primary:hover{background:#96091f}
+button.small{font-size:.88rem;padding:.2rem .6rem;border-width:1.5px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.drop{border:2px dashed var(--silver);background:var(--white);padding:1.6rem 1rem;text-align:center;cursor:pointer}
+.drop.over{border-color:var(--red);background:#FBEFF1}
+.drop strong{display:block;font-size:1.1rem}
+.hint{font-size:.92rem;color:var(--silver);margin:.35rem 0 0}
+.source{background:var(--white);border:1px solid var(--line);padding:.8rem 1rem;margin-top:.6rem}
+.source-head{display:flex;gap:.6rem;align-items:baseline;flex-wrap:wrap}
+.source-head b{flex:1 1 auto;word-break:break-word}
+.tag{font-size:.8rem;font-weight:700;padding:.05rem .45rem;border:1.5px solid var(--silver);color:var(--silver)}
+.tag.need{border-color:var(--red);color:var(--red)}
+.howto{background:var(--paper);padding:.7rem .9rem;margin:.6rem 0;font-size:.95rem}
+.howto ol{margin:.3rem 0 0;padding-left:1.3rem}
+details summary{cursor:pointer;font-weight:600;margin-top:.4rem}
+/* points */
+.plan{width:100%;border-collapse:collapse;background:var(--white)}
+.plan th,.plan td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:middle}
+.plan th{font-size:.9rem;color:var(--silver);font-weight:600}
+.swatch{display:inline-block;width:.85rem;height:.85rem;margin-right:.45rem;vertical-align:-.1rem}
+.bar{position:relative;height:2.6rem;border:2px solid var(--black);background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),var(--line) calc(10% - 1px),var(--line) 10%);display:flex;margin-top:1rem;overflow:hidden}
+.bar span{height:100%;transition:width .25s ease}
+.bar-status{font-family:var(--head);font-weight:700;font-size:1.25rem;margin:.5rem 0 0}
+.bar-status.good{color:var(--ok)} .bar-status.bad{color:var(--red)}
+@media (prefers-reduced-motion:reduce){.bar span{transition:none}}
+/* tabs */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--black)}
+.tabs button{border-bottom:none;margin-right:-2px;background:var(--paper)}
+.tabs button[aria-selected=true]{background:var(--black);color:var(--white)}
+.tabpanel{background:var(--white);border:2px solid var(--black);border-top:none;padding:1rem 1.2rem}
+.radios label{display:flex;gap:.5rem;align-items:flex-start;font-weight:400;margin:.3rem 0}
+.status{margin:.6rem 0 0;font-weight:600}
+.status.err{color:var(--red)} .status.ok{color:var(--ok)}
+/* questions */
+.q{background:var(--white);border:1px solid var(--line);border-top:4px solid var(--black);padding:.9rem 1rem;margin-top:.9rem}
+.q[data-type=mc]{border-top-color:var(--red)} .q[data-type=typed]{border-top-color:var(--silver)}
+.q-head{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.q-num{font-family:var(--head);font-weight:800;font-size:1.3rem;min-width:2rem}
+.q-head select{width:auto}
+.q-pts{margin-left:auto;font-weight:700}
+.choice{display:flex;gap:.5rem;align-items:center;margin:.35rem 0}
+.choice input[type=text]{flex:1}
+.choice input[type=radio],.radios input{width:1.15rem;height:1.15rem;accent-color:var(--red);flex:none}
+.problems{color:var(--red);margin:.5rem 0 0;padding-left:1.2rem}
+.warn{color:var(--silver);margin:.5rem 0 0;padding-left:1.2rem}
+.walk{margin:.2rem 0 .8rem;padding-left:1.6rem}
+.walk > li{margin:0 0 1.1rem;padding-left:.3rem}
+.walk > li::marker{font-family:var(--head);font-weight:800;color:var(--red);font-size:1.15rem}
+.walk .sub{margin:.2rem 0 .5rem}
+.tools{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0 0}
+.tools label{display:flex;gap:.45rem;align-items:center;font-weight:600;margin:0;padding:.4rem .75rem;border:1.5px solid var(--silver);cursor:pointer}
+.tools label:has(input:checked){border-color:var(--red);background:#FBEFF1}
+.tools input{accent-color:var(--red);width:1.1rem;height:1.1rem}
+a.btn{display:inline-block;text-decoration:none}
+a.btn:hover{background:var(--paper)}
+.trouble dt{font-weight:700;margin-top:.8rem}
+.trouble dd{margin:.2rem 0 0}
+.star{color:var(--red);font-family:var(--head);font-weight:800;font-size:1.5rem;line-height:1;width:1rem;text-align:center;flex:none}
+.keynote{display:flex;gap:.7rem;align-items:flex-start;background:var(--white);border-left:5px solid var(--red);padding:.7rem 1rem;margin:0 0 .5rem}
+.keynote p{margin:0}
+.choice.is-correct input[type=text]{border-color:var(--red);border-width:2px}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.empty{background:var(--white);border:2px dashed var(--line);padding:1.4rem;text-align:center;color:var(--silver)}
+@media (max-width:640px){
+  .step{grid-template-columns:1fr}
+  .step-num{text-align:left;font-size:2.4rem;margin-bottom:.2rem}
+  .plan th:nth-child(4),.plan td:nth-child(4){display:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="inner">
+    <h1>Turn class materials into a Canvas quiz</h1>
+    <p>Add study guides, old quizzes, slides, or video transcripts. Set the points. Review the questions. Download a file Canvas can import.</p>
+  </div>
+</header>
+
+<main>
+
+<!-- STEP 1 -->
+<section class="step" aria-labelledby="h1">
+  <div class="step-num" aria-hidden="true">1</div>
+  <div>
+    <h2 id="h1">Add your materials</h2>
+    <p class="lede">Upload files or paste links. Everything is read here in your browser; nothing is uploaded to a server.</p>
+
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose files to upload">
+      <strong>Drop files here or click to choose</strong>
+      <span class="hint">PDF, Word (.docx), PowerPoint (.pptx), or plain text (.txt)</span>
+    </div>
+    <input type="file" id="fileInput" multiple accept=".pdf,.docx,.pptx,.txt" hidden>
+
+    <div class="panel" style="margin-top:1rem">
+      <label for="linkInput">Link to a YouTube video, website, or Canva presentation</label>
+      <div class="row">
+        <input type="url" id="linkInput" placeholder="https://">
+        <button id="addLink">Add link</button>
+      </div>
+      <details>
+        <summary>Or paste text directly</summary>
+        <label for="pasteName">Name</label>
+        <input type="text" id="pasteName" placeholder="e.g. Chapter 4 notes">
+        <label for="pasteText">Text</label>
+        <textarea id="pasteText" rows="6"></textarea>
+        <button id="addPaste" style="margin-top:.5rem">Add pasted text</button>
+      </details>
+    </div>
+
+    <div id="sourceList"></div>
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step" aria-labelledby="h2">
+  <div class="step-num" aria-hidden="true">2</div>
+  <div>
+    <h2 id="h2">Set the points</h2>
+    <p class="lede">Choose how many questions of each type and how many points that type is worth in total. The three totals must add up to 100. Points are split evenly across the questions of each type.</p>
+    <div style="overflow-x:auto">
+    <table class="plan">
+      <thead><tr><th>Question type</th><th>How many</th><th>Points for this type</th><th>Each question</th></tr></thead>
+      <tbody>
+        <tr><td><span class="swatch" style="background:var(--red)"></span>Multiple choice</td>
+          <td><input type="number" min="0" max="100" id="n-mc" value="10" aria-label="Number of multiple choice questions"></td>
+          <td><input type="number" min="0" max="100" step="0.5" id="p-mc" value="50" aria-label="Points for multiple choice"></td>
+          <td id="e-mc"></td></tr>
+        <tr><td><span class="swatch" style="background:var(--black)"></span>True/false</td>
+          <td><input type="number" min="0" max="100" id="n-tf" value="5" aria-label="Number of true/false questions"></td>
+          <td><input type="number" min="0" max="100" step="0.5" id="p-tf" value="20" aria-label="Points for true/false"></td>
+          <td id="e-tf"></td></tr>
+        <tr><td><span class="swatch" style="background:var(--silver)"></span>Typed response</td>
+          <td><input type="number" min="0" max="100" id="n-typed" value="3" aria-label="Number of typed response questions"></td>
+          <td><input type="number" min="0" max="100" step="0.5" id="p-typed" value="30" aria-label="Points for typed response"></td>
+          <td id="e-typed"></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <p class="bar-status" id="barStatus" role="status"></p>
+
+    <fieldset class="panel radios" style="margin-top:1rem">
+      <legend style="font-weight:700">How should typed responses be graded?</legend>
+      <label><input type="radio" name="typedMode" value="essay" checked> I'll grade them myself (Canvas essay question)</label>
+      <label><input type="radio" name="typedMode" value="auto"> Canvas grades them automatically by matching accepted answers (short answer; best for one- or two-word answers)</label>
+    </fieldset>
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="step" aria-labelledby="h3">
+  <div class="step-num" aria-hidden="true">3</div>
+  <div>
+    <h2 id="h3">Have AI write the questions</h2>
+    <p class="lede">You'll copy a set of instructions from this page into an AI chat, then copy its answer back. It takes about two minutes. Prefer to write your own questions? Skip to step 4.</p>
+
+    <div class="panel radios">
+      <b>What's in your materials?</b>
+      <label><input type="radio" name="genMode" value="convert"> Quiz questions that already exist (an old quiz, a Microsoft Forms PDF). Convert them as written.</label>
+      <label><input type="radio" name="genMode" value="create" checked> Content to teach from (notes, a study guide, slides, a video). Write new questions.</label>
+      <label><input type="radio" name="genMode" value="both"> Some of each. Use existing questions first, then write new ones to fill the counts.</label>
+      <label for="notes">Anything the questions should keep in mind? (optional)</label>
+      <input type="text" id="notes" placeholder="e.g. 7th grade, focus on vocabulary, avoid questions about dates">
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-chat" aria-selected="true" aria-controls="panel-chat">Use an AI chat (recommended)</button>
+      <button role="tab" id="tab-api" aria-selected="false" aria-controls="panel-api">Use an API key</button>
+    </div>
+    <div class="tabpanel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
+      <ol class="walk">
+        <li><b>Choose the AI tool you'll use.</b>
+          <div class="tools" role="radiogroup" aria-label="AI tool">
+            <label><input type="radio" name="aiTool" value="copilot" checked> Microsoft Copilot</label>
+            <label><input type="radio" name="aiTool" value="chatgpt"> ChatGPT</label>
+            <label><input type="radio" name="aiTool" value="gemini"> Google Gemini</label>
+            <label><input type="radio" name="aiTool" value="notebooklm"> Google NotebookLM</label>
+          </div>
+          <p class="hint">Not sure? Choose Copilot and sign in with your school Microsoft account. Keep student names and grades out of your materials.</p>
+        </li>
+        <li><b>Copy the instructions.</b>
+          <p class="sub" id="copyExplain">This copies your materials and point plan in one piece. You won't see anything change; it's saved to your clipboard.</p>
+          <button class="primary" id="copyPrompt">Copy instructions for the AI</button>
+          <p class="status" id="copyStatus" role="status"></p>
+        </li>
+        <li><b id="openTitle">Open Copilot and paste.</b>
+          <p class="sub" id="openExplain"></p>
+          <a class="btn" id="openTool" href="https://copilot.microsoft.com" target="_blank" rel="noopener">Open Copilot in a new tab</a>
+        </li>
+        <li><b>Wait for the whole reply, then copy it.</b>
+          <p class="sub">The reply will look like computer code, starting with <code>{"questions"</code>. That's what you want. Wait until it stops writing, then <span id="copyWhere">click the Copy button on the code box</span>.</p>
+        </li>
+        <li><b>Come back to this tab and paste the reply here.</b>
+          <label for="responseBox" class="visually-hidden">The AI's reply</label>
+          <textarea id="responseBox" rows="6" placeholder="Click here and press Ctrl+V (Cmd+V on a Mac)"></textarea>
+          <button class="primary" id="loadResponse" style="margin-top:.5rem">Load questions</button>
+          <p class="status" id="loadStatus" role="status"></p>
+        </li>
+      </ol>
+      <details class="trouble">
+        <summary>Something went wrong?</summary>
+        <dl>
+          <dt>The AI says my message is too long, or won't send it.</dt>
+          <dd>Copy the short version below instead, which leaves out your materials. In the AI tool, attach your files with the paperclip or + button, paste the instructions, and send.
+            <br><button class="small" id="copyShort" style="margin-top:.4rem">Copy instructions without materials</button> <span class="status" id="shortStatus" role="status"></span></dd>
+          <dt>The reply stopped partway through.</dt>
+          <dd>Ask for fewer questions at a time. Lower the counts in step 2, copy and run it, and load those questions. Then set the counts for the rest, run it again, and choose <b>Cancel</b> when asked to replace, so the new questions are added to the end. Fix the counts back before you download.</dd>
+          <dt>The AI wrote a paragraph or asked me a question instead.</dt>
+          <dd>Reply to it with: <i>Please give me only the JSON, with no other text.</i> Then copy that reply.</dd>
+          <dt>Load questions shows an error.</dt>
+          <dd>Most often, part of the reply was missed. Clear the box, go back to the AI tab, copy the whole reply again, and paste it.</dd>
+        </dl>
+      </details>
+    </div>
+    <div class="tabpanel" id="panel-api" role="tabpanel" aria-labelledby="tab-api" hidden>
+      <label for="apiKey">Anthropic API key</label>
+      <input type="password" id="apiKey" autocomplete="off" placeholder="sk-ant-...">
+      <p class="hint">The key stays in this browser tab and is sent only to Anthropic. It is not saved; refreshing the page clears it.</p>
+      <label for="model">Model</label>
+      <input type="text" id="model" value="claude-sonnet-5">
+      <button class="primary" id="runApi" style="margin-top:.7rem">Write questions</button>
+      <p class="status" id="apiStatus" role="status"></p>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step" aria-labelledby="h4">
+  <div class="step-num" aria-hidden="true">4</div>
+  <div>
+    <h2 id="h4">Review and edit</h2>
+    <p class="lede">Read every question before you download. Points update automatically when you add, delete, or change a question's type.</p>
+    <div class="keynote"><span class="star">*</span><p>The correct answer is marked with a red asterisk. To change it, click the circle beside the right answer and the asterisk moves there. The asterisk is only a marker on this page; don't type asterisks into your questions or answers.</p></div>
+    <div id="qlist"><div class="empty">No questions yet. Load them in step 3, or add your own.</div></div>
+    <div class="row" style="margin-top:1rem">
+      <button class="small" data-add="mc">Add multiple choice</button>
+      <button class="small" data-add="tf">Add true/false</button>
+      <button class="small" data-add="typed">Add typed response</button>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 5 -->
+<section class="step" aria-labelledby="h5">
+  <div class="step-num" aria-hidden="true">5</div>
+  <div>
+    <h2 id="h5">Download for Canvas</h2>
+    <div class="panel">
+      <label for="quizTitle">Quiz title</label>
+      <input type="text" id="quizTitle" placeholder="e.g. Unit 3 Review Quiz">
+      <ul class="problems" id="problems"></ul>
+      <ul class="warn" id="warnings"></ul>
+      <button class="primary" id="exportBtn" style="margin-top:.8rem">Download Canvas quiz (.zip)</button>
+      <p class="hint">After importing, turn on <b>Shuffle answers</b> in the quiz settings so answer order differs for each student. The steps are below.</p>
+    </div>
+    <details class="panel">
+      <summary>How to import the file into Canvas</summary>
+      <ol>
+        <li>Open your course and go to <b>Settings</b>, then <b>Import Course Content</b>.</li>
+        <li>For Content Type, choose <b>QTI .zip file</b>.</li>
+        <li>Choose the .zip you downloaded. Leave it zipped.</li>
+        <li>If you use New Quizzes, check <b>Import existing quizzes as New Quizzes</b> when it's offered.</li>
+        <li>Select <b>All content</b>, then <b>Import</b>. When the job says Completed, the quiz appears under Quizzes, unpublished.</li>
+        <li>Open the quiz and turn on <b>Shuffle answers</b>. In Classic Quizzes, click <b>Edit</b> and check <b>Shuffle Answers</b> under Options. In New Quizzes, open the <b>Settings</b> tab and turn on <b>Shuffle answers</b>.</li>
+        <li>Check the due date, time limit, and attempts, then <b>Publish</b>.</li>
+      </ol>
+      <p class="hint">If you converted an old quiz that has choices like "All of the above" or "Both A and B," edit those before you shuffle, or they'll stop making sense.</p>
+    </details>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ---------- setup ---------- */
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2, 9);
+const TYPES = { mc: 'Multiple choice', tf: 'True/false', typed: 'Typed response' };
+const COLORS = { mc: 'var(--red)', tf: 'var(--black)', typed: 'var(--silver)' };
+const state = { sources: [], questions: [] };
+const escHtml = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const escXml = s => escHtml(s).replace(/'/g,'&apos;');
+const fmt = n => (Math.round(n * 100) / 100).toString();
+
+/* ---------- step 1: sources ---------- */
+const drop = $('#drop'), fileInput = $('#fileInput');
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', () => { handleFiles(fileInput.files); fileInput.value = ''; });
+
+async function handleFiles(files) {
+  for (const f of files) {
+    const src = { id: uid(), name: f.name, kind: 'file', text: '', status: 'Reading…' };
+    state.sources.push(src); renderSources();
+    try {
+      const ext = f.name.split('.').pop().toLowerCase();
+      if (ext === 'pdf') src.text = await readPdf(f);
+      else if (ext === 'docx') src.text = await readDocx(f);
+      else if (ext === 'pptx') src.text = await readPptx(f);
+      else if (ext === 'txt') src.text = await f.text();
+      else if (ext === 'doc' || ext === 'ppt') throw new Error('Older .' + ext + ' files can\'t be read. Open it and use Save As to make a .' + ext + 'x file, then upload that.');
+      else throw new Error('This file type isn\'t supported. Use PDF, .docx, .pptx, or .txt.');
+      src.text = src.text.trim();
+      src.status = src.text ? '' : 'No text found. If this is a scanned PDF, open it in Google Drive with Google Docs to convert the scan to text, then upload or paste that.';
+    } catch (err) { src.status = err.message || 'Couldn\'t read this file.'; }
+    renderSources();
+  }
+}
+
+async function readPdf(file) {
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const pages = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const tc = await (await pdf.getPage(p)).getTextContent();
+    // Sort by visual position (top to bottom, left to right) rather than content-stream order.
+    const items = tc.items.filter(i => i.str && i.str.trim())
+      .map(i => ({ s: i.str, x: i.transform[4], y: i.transform[5] }))
+      .sort((a, b) => (b.y - a.y) || (a.x - b.x));
+    const lines = []; let cur = [], lastY = null;
+    for (const it of items) {
+      if (lastY !== null && Math.abs(it.y - lastY) > 3) { lines.push(cur); cur = []; }
+      cur.push(it); lastY = it.y;
+    }
+    if (cur.length) lines.push(cur);
+    pages.push(lines.map(l => l.sort((a, b) => a.x - b.x).map(i => i.s).join(' ').replace(/\s+/g, ' ').trim()).join('\n'));
+  }
+  return pages.join('\n\n');
+}
+
+async function readDocx(file) {
+  const res = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() }, { styleMap: ['u => u'] });
+  // Keep bold and underline as **text** and __text__, since teachers often mark answers that way.
+  const html = res.value
+    .replace(/<\/?(strong|b)>/g, '**').replace(/<\/?u>/g, '__')
+    .replace(/<li>/g, '\n• ').replace(/<\/(p|h\d|li|tr)>/g, '\n').replace(/<(td|th)>/g, ' | ')
+    .replace(/<[^>]+>/g, '');
+  const t = document.createElement('textarea'); t.innerHTML = html;
+  return t.value.replace(/\n{3,}/g, '\n\n');
+}
+
+async function readPptx(file) {
+  const zip = await JSZip.loadAsync(file);
+  const num = n => parseInt(n.match(/(\d+)\.xml$/)[1], 10);
+  const A = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+  const grab = async name => {
+    const doc = new DOMParser().parseFromString(await zip.file(name).async('string'), 'application/xml');
+    return [...doc.getElementsByTagNameNS(A, 'p')]
+      .map(p => [...p.getElementsByTagNameNS(A, 't')].map(t => t.textContent).join(''))
+      .filter(s => s.trim() && !/^\d+$/.test(s.trim())).join('\n');
+  };
+  const slides = Object.keys(zip.files).filter(n => /^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a, b) => num(a) - num(b));
+  const out = [];
+  for (const s of slides) {
+    let block = 'Slide ' + num(s) + ':\n' + await grab(s);
+    const notes = 'ppt/notesSlides/notesSlide' + num(s) + '.xml';
+    if (zip.file(notes)) { const n = await grab(notes); if (n) block += '\nSpeaker notes: ' + n; }
+    out.push(block);
+  }
+  return out.join('\n\n');
+}
+
+const HOWTO = {
+  youtube: `<b>This page can't pull YouTube transcripts directly, so copy it in:</b><ol>
+    <li>Open the video on YouTube in a computer browser.</li>
+    <li>Under the video, click <b>…more</b> to expand the description.</li>
+    <li>Scroll to the bottom of the description and click <b>Show transcript</b>. The transcript opens beside the video.</li>
+    <li>Optional: click the three dots at the top of the transcript and choose <b>Toggle timestamps</b> to hide the times.</li>
+    <li>Click at the start of the transcript, scroll to the end, and Shift-click the last line to select it all. Press Ctrl+C (Cmd+C on a Mac).</li>
+    <li>Paste it in the box below and click <b>Save text</b>.</li></ol>
+    <p class="hint">No "Show transcript" button? The video doesn't have captions, so there's no transcript to copy.</p>`,
+  canva: `<b>Canva presentations can't be read from a link, so bring the text in one of these ways:</b><ol>
+    <li>If you can edit the design: click <b>Share</b>, then <b>Download</b>, choose <b>PDF Standard</b>, and upload the PDF in the box at the top of this step.</li>
+    <li>If you only have a view link: ask the owner for a PDF download, or open each slide and copy its text into the box below.</li></ol>`,
+  web: `<b>This website blocked the page from reading it directly, so copy it in:</b><ol>
+    <li>Open the link in a new tab.</li>
+    <li>Press Ctrl+A (Cmd+A on a Mac) to select everything, then Ctrl+C to copy.</li>
+    <li>Paste it in the box below and click <b>Save text</b>. Extra menu text is fine; the AI will ignore it.</li></ol>
+    <p class="hint">You can also print the page to PDF (Ctrl+P, then Save as PDF) and upload the PDF.</p>`
+};
+
+$('#addLink').addEventListener('click', addLink);
+$('#linkInput').addEventListener('keydown', e => { if (e.key === 'Enter') addLink(); });
+
+async function addLink() {
+  const url = $('#linkInput').value.trim();
+  if (!/^https?:\/\//i.test(url)) { $('#linkInput').focus(); return; }
+  $('#linkInput').value = '';
+  let kind = 'web';
+  if (/(youtube\.com|youtu\.be)/i.test(url)) kind = 'youtube';
+  else if (/canva\.(com|site)/i.test(url)) kind = 'canva';
+  const src = { id: uid(), name: url, kind, text: '', status: kind === 'web' ? 'Trying to read this page…' : '' };
+  state.sources.push(src); renderSources();
+  if (kind === 'web') {
+    try {
+      const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 8000);
+      const res = await fetch(url, { signal: ctrl.signal });
+      if (!res.ok) throw 0;
+      const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+      doc.querySelectorAll('script,style,noscript,nav,footer,header,svg,iframe').forEach(n => n.remove());
+      src.text = (doc.body?.textContent || '').replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
+      src.status = src.text ? '' : 'needs-paste';
+    } catch { src.status = 'needs-paste'; }
+    renderSources();
+  }
+}
+
+$('#addPaste').addEventListener('click', () => {
+  const text = $('#pasteText').value.trim(); if (!text) return;
+  state.sources.push({ id: uid(), name: $('#pasteName').value.trim() || 'Pasted text', kind: 'paste', text, status: '' });
+  $('#pasteText').value = ''; $('#pasteName').value = ''; renderSources();
+});
+
+function renderSources() {
+  $('#sourceList').innerHTML = state.sources.map(s => {
+    const needs = !s.text && (s.kind === 'youtube' || s.kind === 'canva' || s.status === 'needs-paste');
+    const label = { file: 'File', paste: 'Pasted', youtube: 'YouTube', canva: 'Canva', web: 'Website' }[s.kind];
+    const how = s.kind === 'youtube' ? HOWTO.youtube : s.kind === 'canva' ? HOWTO.canva : HOWTO.web;
+    let body;
+    if (needs) body = `<div class="howto">${how}</div>
+        <textarea data-paste="${s.id}" rows="5" aria-label="Paste text for ${escHtml(s.name)}"></textarea>
+        <button class="small" data-save="${s.id}" style="margin-top:.4rem">Save text</button>`;
+    else if (s.text) body = `<details><summary>Check the text (${s.text.length.toLocaleString()} characters)</summary>
+        <textarea data-edit="${s.id}" rows="8" aria-label="Text from ${escHtml(s.name)}">${escHtml(s.text)}</textarea></details>`;
+    else body = `<p class="status ${s.status.endsWith('…') ? '' : 'err'}">${escHtml(s.status)}</p>`;
+    return `<div class="source"><div class="source-head">
+        <span class="tag ${needs ? 'need' : ''}">${needs ? 'Needs text' : label}</span>
+        <b>${escHtml(s.name)}</b>
+        <button class="small" data-remove="${s.id}">Remove</button></div>${body}</div>`;
+  }).join('');
+}
+
+$('#sourceList').addEventListener('click', e => {
+  const t = e.target;
+  if (t.dataset.remove) { state.sources = state.sources.filter(s => s.id !== t.dataset.remove); renderSources(); }
+  if (t.dataset.save) {
+    const s = state.sources.find(x => x.id === t.dataset.save);
+    const v = document.querySelector(`[data-paste="${s.id}"]`).value.trim();
+    if (v) { s.text = v; s.status = ''; renderSources(); }
+  }
+});
+$('#sourceList').addEventListener('input', e => {
+  const id = e.target.dataset.edit; if (!id) return;
+  state.sources.find(s => s.id === id).text = e.target.value;
+});
+
+/* ---------- step 2: points ---------- */
+function plan() {
+  const p = {};
+  for (const k of Object.keys(TYPES)) p[k] = { count: Math.max(0, parseInt($('#n-' + k).value) || 0), points: Math.max(0, parseFloat($('#p-' + k).value) || 0) };
+  return p;
+}
+const planTotal = p => Object.values(p).reduce((a, t) => a + t.points, 0);
+const typedMode = () => document.querySelector('input[name=typedMode]:checked').value;
+
+// Split a total across n questions so they add up exactly (e.g. 33.33 + 33.33 + 33.34).
+function distribute(total, n) {
+  if (!n) return [];
+  const cents = Math.round(total * 100), base = Math.floor(cents / n), rem = cents - base * n;
+  return Array.from({ length: n }, (_, i) => (base + (i >= n - rem ? 1 : 0)) / 100);
+}
+
+function renderPlan() {
+  const p = plan(), total = planTotal(p);
+  for (const k of Object.keys(TYPES)) {
+    const d = distribute(p[k].points, p[k].count);
+    $('#e-' + k).textContent = !p[k].count ? '—' : (d[0] === d[d.length - 1] ? fmt(d[0]) + ' pts' : fmt(d[0]) + '–' + fmt(d[d.length - 1]) + ' pts');
+  }
+  $('#bar').innerHTML = Object.keys(TYPES).map(k => `<span style="width:${Math.min(p[k].points, 100)}%;background:${COLORS[k]}"></span>`).join('');
+  const st = $('#barStatus'), diff = Math.round((100 - total) * 100) / 100;
+  st.className = 'bar-status ' + (diff === 0 ? 'good' : 'bad');
+  st.textContent = diff === 0 ? '100 of 100 points. Ready.' : diff > 0 ? `${fmt(total)} of 100 points. Add ${fmt(diff)} more.` : `${fmt(total)} of 100 points. Remove ${fmt(-diff)}.`;
+  renderQuestions(); validate();
+}
+document.querySelectorAll('.plan input').forEach(i => i.addEventListener('input', renderPlan));
+document.querySelectorAll('input[name=typedMode]').forEach(i => i.addEventListener('change', renderPlan));
+
+/* ---------- step 3: generation ---------- */
+for (const [tab, other] of [['chat', 'api'], ['api', 'chat']]) {
+  $('#tab-' + tab).addEventListener('click', () => {
+    $('#tab-' + tab).setAttribute('aria-selected', 'true'); $('#tab-' + other).setAttribute('aria-selected', 'false');
+    $('#panel-' + tab).hidden = false; $('#panel-' + other).hidden = true;
+  });
+}
+
+function buildPrompt(withMaterials = true) {
+  const p = plan(), mode = document.querySelector('input[name=genMode]:checked').value;
+  const sources = state.sources.filter(s => s.text.trim());
+  if (withMaterials && !sources.length) throw new Error('Add at least one material with text in step 1 first.');
+  if (Math.round(planTotal(p) * 100) !== 10000) throw new Error('Set the points in step 2 so they add up to 100.');
+  const counts = Object.keys(TYPES).filter(k => p[k].count).map(k => `${p[k].count} ${TYPES[k].toLowerCase()}`);
+  if (!counts.length) throw new Error('Set at least one question count in step 2.');
+  const modeText = {
+    convert: 'The materials contain existing quiz questions. Convert them as written; do not invent new content. Keep original wording. If a question has a different format than requested, keep its original format and adjust the other counts.',
+    create: 'Write new, original questions based only on facts stated in the materials.',
+    both: 'First use any existing quiz questions in the materials, keeping their wording. Then write new questions from the content to reach the requested counts.'
+  }[mode];
+  const typedRule = typedMode() === 'auto'
+    ? 'Typed response: the answer must be one to three words. In "accepted", list every reasonable spelling or phrasing a student might type (2 to 5 entries).'
+    : 'Typed response: an open question students answer in a few sentences. In "accepted", give one short sample answer for the teacher.';
+  let text = 'Use the files and sources I have attached or added.';
+  if (withMaterials) {
+    text = sources.map((s, i) => `=== Material ${i + 1}: ${s.name} ===\n${s.text}`).join('\n\n');
+    const LIMIT = 150000;
+    if (text.length > LIMIT) text = text.slice(0, LIMIT) + '\n[Material cut off for length]';
+  }
+  return `You are helping a teacher build a quiz for Canvas LMS.
+
+Write exactly: ${counts.join(', ')} questions.
+${modeText}
+${$('#notes').value.trim() ? 'Teacher notes: ' + $('#notes').value.trim() : ''}
+
+Rules:
+- Multiple choice: exactly 4 choices, exactly one correct. Wrong choices should be plausible. Do not use "All of the above". Vary which position holds the correct answer.
+- Do not put asterisks, letters (A, B, C), or any markers in the question or choice text.
+- True/false: a clear statement that is definitely true or definitely false according to the materials.
+- ${typedRule}
+- In the materials, **bold** or __underlined__ text, an asterisk, or an answer key usually marks a correct answer. If no answer is marked, choose the answer the materials support.
+- "feedback" is one short sentence explaining the correct answer, or an empty string.
+
+Reply with ONLY this JSON, no other text and no code fences:
+{"questions":[
+ {"type":"mc","prompt":"...","choices":["...","...","...","..."],"correct":0,"feedback":"..."},
+ {"type":"tf","prompt":"...","answer":true,"feedback":"..."},
+ {"type":"typed","prompt":"...","accepted":["..."],"feedback":"..."}
+]}
+"correct" is the zero-based index of the right choice.
+
+MATERIALS:
+${text}`;
+}
+
+const TOOLS = {
+  copilot: { name: 'Copilot', url: 'https://copilot.microsoft.com', copy: 'click the Copy button on the code box (or under the reply)' },
+  chatgpt: { name: 'ChatGPT', url: 'https://chatgpt.com', copy: 'click <b>Copy code</b> at the top of the code box' },
+  gemini: { name: 'Gemini', url: 'https://gemini.google.com', copy: 'click the Copy button on the code box' },
+  notebooklm: { name: 'NotebookLM', url: 'https://notebooklm.google.com', copy: 'click the Copy button under the reply', attach: true }
+};
+const currentTool = () => TOOLS[document.querySelector('input[name=aiTool]:checked').value];
+function renderTool() {
+  const t = currentTool();
+  $('#openTool').href = t.url;
+  $('#openTool').textContent = 'Open ' + t.name + ' in a new tab';
+  $('#copyWhere').innerHTML = t.copy;
+  if (t.attach) {
+    $('#copyExplain').textContent = 'This copies your point plan and instructions. NotebookLM reads your materials itself, so you\'ll add them there in the next step.';
+    $('#openTitle').textContent = 'Open NotebookLM, add your materials, and paste.';
+    $('#openExplain').innerHTML = 'Click <b>Create new</b> to start a notebook. Add the same files and links you used in step 1 as sources (NotebookLM can read YouTube links directly). Then click in the chat box at the bottom, press Ctrl+V (Cmd+V on a Mac), and press Enter.';
+  } else {
+    $('#copyExplain').textContent = 'This copies your materials and point plan in one piece. You won\'t see anything change; it\'s saved to your clipboard.';
+    $('#openTitle').textContent = 'Open ' + t.name + ' and paste.';
+    $('#openExplain').innerHTML = 'Sign in if asked. Click in the message box, press Ctrl+V (Cmd+V on a Mac) to paste, and press Enter to send.';
+  }
+  $('#copyStatus').textContent = '';
+}
+document.querySelectorAll('input[name=aiTool]').forEach(r => r.addEventListener('change', renderTool));
+
+async function copyInstructions(withMaterials, st) {
+  try {
+    const prompt = buildPrompt(withMaterials);
+    await navigator.clipboard.writeText(prompt);
+    st.className = 'status ok';
+    st.textContent = 'Copied. Now go to the next step.' + (withMaterials && prompt.length > 20000 ? ' Your materials are long; if the AI won\'t accept them, see "Something went wrong?" below.' : '');
+  } catch (err) { st.className = 'status err'; st.textContent = err.message || 'Your browser blocked copying. Click the button again.'; }
+}
+$('#copyPrompt').addEventListener('click', () => copyInstructions(!currentTool().attach, $('#copyStatus')));
+$('#copyShort').addEventListener('click', () => copyInstructions(false, $('#shortStatus')));
+
+function parseQuestions(raw) {
+  let s = raw.replace(/```json|```/g, '');
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a < 0 || b < 0) throw new Error('No question data found. Paste the complete reply, starting with {.');
+  const body = s.slice(a, b + 1);
+  let data;
+  try { data = JSON.parse(body); }
+  catch (err) { data = JSON.parse(body.replace(/\s*\[\d+(?:\s*[,\u2013-]\s*\d+)*\]/g, '')); } // NotebookLM citation numbers
+  const list = Array.isArray(data) ? data : data.questions;
+  if (!Array.isArray(list) || !list.length) throw new Error('The reply had no questions in it.');
+  return list.map(q => {
+    const type = ['mc', 'tf', 'typed'].includes(q.type) ? q.type : /true|false|tf/i.test(q.type) ? 'tf' : /mult|choice/i.test(q.type) ? 'mc' : 'typed';
+    const out = { id: uid(), type, prompt: String(q.prompt || q.question || ''), feedback: String(q.feedback || '') };
+    if (type === 'mc') {
+      out.choices = (q.choices || []).map(c => String(c).replace(/^\s*\*+\s*|\s*\*+\s*$/g, '').replace(/^[A-Da-d][.)]\s+/, ''));
+      out.correct = Math.min(Math.max(0, parseInt(q.correct) || 0), Math.max(0, out.choices.length - 1));
+      if (document.querySelector('input[name=genMode]:checked').value === 'create') shuffleChoices(out);
+    }
+    if (type === 'tf') out.answer = q.answer === true || String(q.answer).toLowerCase() === 'true';
+    if (type === 'typed') out.accepted = (Array.isArray(q.accepted) ? q.accepted : [q.accepted || '']).map(String).filter(Boolean);
+    return out;
+  });
+}
+
+// New questions only: mix up answer order so the correct answer isn't always in the same spot.
+function shuffleChoices(q) {
+  const right = q.choices[q.correct];
+  for (let i = q.choices.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [q.choices[i], q.choices[j]] = [q.choices[j], q.choices[i]]; }
+  q.correct = q.choices.indexOf(right);
+}
+
+function loadQuestions(qs, statusEl) {
+  const replace = !state.questions.length || confirm(`Replace the ${state.questions.length} questions in step 4? Choose Cancel to add these to the end instead.`);
+  state.questions = replace ? qs : state.questions.concat(qs);
+  renderQuestions(); validate();
+  statusEl.className = 'status ok'; statusEl.textContent = `Loaded ${qs.length} questions. Review them in step 4.`;
+  $('#h4').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+$('#loadResponse').addEventListener('click', () => {
+  const st = $('#loadStatus');
+  try { loadQuestions(parseQuestions($('#responseBox').value), st); }
+  catch (err) { st.className = 'status err'; st.textContent = err instanceof SyntaxError ? 'The reply isn\'t complete question data. Make sure you copied all of it; if the AI stopped partway, ask it to "continue" and paste the full result.' : err.message; }
+});
+
+$('#runApi').addEventListener('click', async () => {
+  const st = $('#apiStatus'), btn = $('#runApi'), key = $('#apiKey').value.trim();
+  try {
+    if (!key) throw new Error('Enter your API key first.');
+    const prompt = buildPrompt();
+    btn.disabled = true; st.className = 'status'; st.textContent = 'Writing questions. This can take a minute…';
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: $('#model').value.trim(), max_tokens: 16000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(res.status === 401 ? 'The API key wasn\'t accepted. Check it and try again.' : 'The API returned an error: ' + (data.error?.message || res.status));
+    const text = data.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+    loadQuestions(parseQuestions(text), st);
+  } catch (err) { st.className = 'status err'; st.textContent = err instanceof SyntaxError ? 'The reply came back incomplete. Try again, or ask for fewer questions.' : err.message; }
+  finally { btn.disabled = false; }
+});
+
+/* ---------- step 4: review ---------- */
+function computePoints() {
+  const p = plan(), map = {};
+  for (const k of Object.keys(TYPES)) {
+    const qs = state.questions.filter(q => q.type === k), d = distribute(p[k].points, qs.length);
+    qs.forEach((q, i) => map[q.id] = d[i]);
+  }
+  return map;
+}
+
+function blank(type) {
+  return type === 'mc' ? { id: uid(), type, prompt: '', choices: ['', '', '', ''], correct: 0, feedback: '' }
+    : type === 'tf' ? { id: uid(), type, prompt: '', answer: true, feedback: '' }
+    : { id: uid(), type, prompt: '', accepted: [], feedback: '' };
+}
+
+function renderQuestions() {
+  const wrap = $('#qlist');
+  if (!state.questions.length) { wrap.innerHTML = '<div class="empty">No questions yet. Load them in step 3, or add your own.</div>'; return; }
+  const pts = computePoints(), auto = typedMode() === 'auto';
+  wrap.innerHTML = state.questions.map((q, i) => {
+    let body = '';
+    if (q.type === 'mc') {
+      body = `<div role="radiogroup" aria-label="Choices; the correct one is marked with an asterisk">` + q.choices.map((c, j) => `<div class="choice ${q.correct === j ? 'is-correct' : ''}">
+          <span class="star" aria-hidden="true">${q.correct === j ? '*' : ''}</span>
+          <input type="radio" name="c-${q.id}" data-f="correct" value="${j}" ${q.correct === j ? 'checked' : ''} aria-label="Mark choice ${j + 1} correct">
+          <input type="text" data-f="choice" data-j="${j}" value="${escHtml(c)}" aria-label="Choice ${j + 1}">
+          <button class="small" data-act="rmchoice" data-j="${j}" aria-label="Remove choice ${j + 1}">Remove</button></div>`).join('') +
+        `</div><button class="small" data-act="addchoice">Add choice</button>`;
+    } else if (q.type === 'tf') {
+      body = `<div class="radios" role="radiogroup" aria-label="Correct answer">
+          <label><span class="star" aria-hidden="true">${q.answer ? '*' : ''}</span><input type="radio" name="tf-${q.id}" data-f="tf" value="true" ${q.answer ? 'checked' : ''}> True${q.answer ? ' (correct)' : ''}</label>
+          <label><span class="star" aria-hidden="true">${!q.answer ? '*' : ''}</span><input type="radio" name="tf-${q.id}" data-f="tf" value="false" ${!q.answer ? 'checked' : ''}> False${!q.answer ? ' (correct)' : ''}</label></div>`;
+    } else if (auto) {
+      body = `<label>Accepted answers, one per line. Every answer listed here counts as correct. (Canvas ignores capitalization.)</label><textarea data-f="accepted" rows="3">${escHtml(q.accepted.join('\n'))}</textarea>`;
+    } else {
+      body = `<p class="hint">Students type an answer; you grade it in SpeedGrader.${q.accepted.length ? ' Sample answer: ' + escHtml(q.accepted.join('; ')) : ''}</p>`;
+    }
+    return `<article class="q" data-id="${q.id}" data-type="${q.type}">
+      <div class="q-head"><span class="q-num">${i + 1}</span>
+        <select data-f="type" aria-label="Question type">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${k === q.type ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        <span class="q-pts">${pts[q.id] != null ? fmt(pts[q.id]) : 0} pts</span>
+        <button class="small" data-act="dup">Duplicate</button>
+        <button class="small" data-act="del">Delete</button></div>
+      <label>Question</label><textarea data-f="prompt" rows="2">${escHtml(q.prompt)}</textarea>
+      ${body}
+      <label>Feedback shown after submitting (optional)</label><input type="text" data-f="feedback" value="${escHtml(q.feedback)}">
+    </article>`;
+  }).join('');
+}
+
+const qlist = $('#qlist');
+qlist.addEventListener('input', e => {
+  const art = e.target.closest('.q'); if (!art) return;
+  const q = state.questions.find(x => x.id === art.dataset.id), f = e.target.dataset.f;
+  if (f === 'prompt') q.prompt = e.target.value;
+  else if (f === 'feedback') q.feedback = e.target.value;
+  else if (f === 'choice') q.choices[+e.target.dataset.j] = e.target.value;
+  else if (f === 'accepted') q.accepted = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
+  validate();
+});
+qlist.addEventListener('change', e => {
+  const art = e.target.closest('.q'); if (!art) return;
+  const q = state.questions.find(x => x.id === art.dataset.id), f = e.target.dataset.f;
+  if (f === 'correct' || f === 'tf') {
+    if (f === 'correct') q.correct = +e.target.value; else q.answer = e.target.value === 'true';
+    const sel = `.q[data-id="${q.id}"] input[data-f="${f}"][value="${e.target.value}"]`;
+    renderQuestions(); document.querySelector(sel)?.focus();
+  }
+  else if (f === 'type') {
+    const n = blank(e.target.value); n.id = q.id; n.prompt = q.prompt; n.feedback = q.feedback;
+    Object.keys(q).forEach(k => delete q[k]); Object.assign(q, n); renderQuestions();
+  }
+  validate();
+});
+qlist.addEventListener('click', e => {
+  const act = e.target.dataset.act; if (!act) return;
+  const art = e.target.closest('.q'), idx = state.questions.findIndex(x => x.id === art.dataset.id), q = state.questions[idx];
+  if (act === 'del') state.questions.splice(idx, 1);
+  if (act === 'dup') state.questions.splice(idx + 1, 0, { ...JSON.parse(JSON.stringify(q)), id: uid() });
+  if (act === 'addchoice') q.choices.push('');
+  if (act === 'rmchoice') {
+    const j = +e.target.dataset.j; q.choices.splice(j, 1);
+    if (q.correct === j) q.correct = 0; else if (q.correct > j) q.correct--;
+  }
+  renderQuestions(); validate();
+});
+document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
+  state.questions.push(blank(b.dataset.add)); renderQuestions(); validate();
+  qlist.lastElementChild.querySelector('textarea').focus();
+}));
+
+/* ---------- step 5: validation & export ---------- */
+function validate() {
+  const p = plan(), probs = [], warns = [];
+  if (!$('#quizTitle').value.trim()) probs.push('Add a quiz title.');
+  if (!state.questions.length) probs.push('Add at least one question in step 4.');
+  if (Math.round(planTotal(p) * 100) !== 10000) probs.push('Points in step 2 must add up to 100.');
+  for (const k of Object.keys(TYPES)) {
+    const n = state.questions.filter(q => q.type === k).length;
+    if (n && !p[k].points) probs.push(`You have ${TYPES[k].toLowerCase()} questions but that type is worth 0 points in step 2.`);
+    if (!n && p[k].points && state.questions.length) probs.push(`${TYPES[k]} is worth ${fmt(p[k].points)} points, but there are no ${TYPES[k].toLowerCase()} questions. Add some or move those points in step 2.`);
+    if (n && p[k].count && n !== p[k].count) warns.push(`You planned ${p[k].count} ${TYPES[k].toLowerCase()} but have ${n}. Their ${fmt(p[k].points)} points are split across the ${n}, so the quiz still totals 100.`);
+  }
+  state.questions.forEach((q, i) => {
+    const num = 'Question ' + (i + 1);
+    if (!q.prompt.trim()) probs.push(num + ' has no question text.');
+    if (q.type === 'mc') {
+      if (q.choices.filter(c => c.trim()).length < 2) probs.push(num + ' needs at least two choices.');
+      if (!(q.choices[q.correct] || '').trim()) probs.push(num + ': the choice marked correct is empty.');
+    }
+    if (q.type === 'typed' && typedMode() === 'auto' && !q.accepted.length) probs.push(num + ' needs at least one accepted answer.');
+  });
+  $('#problems').innerHTML = probs.map(x => `<li>${escHtml(x)}</li>`).join('');
+  $('#warnings').innerHTML = warns.map(x => `<li>${escHtml(x)}</li>`).join('');
+  $('#exportBtn').disabled = probs.length > 0;
+  return !probs.length;
+}
+$('#quizTitle').addEventListener('input', validate);
+
+const meta = (label, value) => `<qtimetadatafield><fieldlabel>${label}</fieldlabel><fieldentry>${escXml(value)}</fieldentry></qtimetadatafield>`;
+const htmlMat = text => `<material><mattext texttype="text/html">${escXml('<p>' + escHtml(text).replace(/\n/g, '<br>') + '</p>')}</mattext></material>`;
+
+function itemXml(q, i, points) {
+  const ident = 'q' + (i + 1) + '_' + q.id;
+  const fbRef = q.feedback.trim() ? `<respcondition continue="Yes"><conditionvar><other/></conditionvar><displayfeedback feedbacktype="Response" linkrefid="general_fb"/></respcondition>` : '';
+  const fbBlock = q.feedback.trim() ? `<itemfeedback ident="general_fb"><flow_mat>${htmlMat(q.feedback)}</flow_mat></itemfeedback>` : '';
+  const outcomes = `<outcomes><decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/></outcomes>`;
+  let qtype, presentation, conditions;
+
+  if (q.type === 'mc' || q.type === 'tf') {
+    let choices, correctIdx;
+    if (q.type === 'mc') {
+      const kept = q.choices.map((c, j) => ({ c, j })).filter(x => x.c.trim());
+      choices = kept.map(x => x.c); correctIdx = kept.findIndex(x => x.j === q.correct);
+      qtype = 'multiple_choice_question';
+    } else { choices = ['True', 'False']; correctIdx = q.answer ? 0 : 1; qtype = 'true_false_question'; }
+    const ids = choices.map((_, j) => String((i + 1) * 1000 + j));
+    presentation = `<response_lid ident="response1" rcardinality="Single"><render_choice>` +
+      choices.map((c, j) => `<response_label ident="${ids[j]}"><material><mattext texttype="text/plain">${escXml(c)}</mattext></material></response_label>`).join('') +
+      `</render_choice></response_lid>`;
+    conditions = `<respcondition continue="No"><conditionvar><varequal respident="response1">${ids[correctIdx]}</varequal></conditionvar><setvar action="Set" varname="SCORE">100</setvar></respcondition>`;
+    return `<item ident="${ident}" title="Question ${i + 1}"><itemmetadata><qtimetadata>${meta('question_type', qtype)}${meta('points_possible', fmt(points))}${meta('original_answer_ids', ids.join(','))}</qtimetadata></itemmetadata>
+<presentation>${htmlMat(q.prompt)}${presentation}</presentation>
+<resprocessing>${outcomes}${fbRef}${conditions}</resprocessing>${fbBlock}</item>`;
+  }
+
+  presentation = `<response_str ident="response1" rcardinality="Single"><render_fib><response_label ident="answer1" rshuffle="No"/></render_fib></response_str>`;
+  if (typedMode() === 'auto') {
+    qtype = 'short_answer_question';
+    conditions = `<respcondition continue="No"><conditionvar>${q.accepted.map(a => `<varequal respident="response1">${escXml(a)}</varequal>`).join('')}</conditionvar><setvar action="Set" varname="SCORE">100</setvar></respcondition>`;
+  } else {
+    qtype = 'essay_question';
+    conditions = `<respcondition continue="No"><conditionvar><other/></conditionvar></respcondition>`;
+  }
+  return `<item ident="${ident}" title="Question ${i + 1}"><itemmetadata><qtimetadata>${meta('question_type', qtype)}${meta('points_possible', fmt(points))}</qtimetadata></itemmetadata>
+<presentation>${htmlMat(q.prompt)}${presentation}</presentation>
+<resprocessing>${outcomes}${fbRef}${conditions}</resprocessing>${fbBlock}</item>`;
+}
+
+$('#exportBtn').addEventListener('click', async () => {
+  if (!validate()) return;
+  const title = $('#quizTitle').value.trim(), qid = 'quiz_' + uid(), pts = computePoints();
+  const assessment = `<?xml version="1.0" encoding="UTF-8"?>
+<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/xsd/ims_qtiasiv1p2p1.xsd">
+<assessment ident="${qid}" title="${escXml(title)}">
+<qtimetadata>${meta('cc_maxattempts', '1')}</qtimetadata>
+<section ident="root_section">
+${state.questions.map((q, i) => itemXml(q, i, pts[q.id])).join('\n')}
+</section>
+</assessment>
+</questestinterop>`;
+  const manifest = `<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="man_${qid}" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1" xmlns:imsmd="http://www.imsglobal.org/xsd/imsmd_v1p2">
+<metadata><schema>IMS Content</schema><schemaversion>1.1.3</schemaversion></metadata>
+<organizations/>
+<resources>
+<resource identifier="${qid}" type="imsqti_xmlv1p2"><file href="${qid}/${qid}.xml"/></resource>
+</resources>
+</manifest>`;
+  const zip = new JSZip();
+  zip.file('imsmanifest.xml', manifest);
+  zip.file(`${qid}/${qid}.xml`, assessment);
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (title.replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') || 'quiz') + '_canvas_qti.zip';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+
+renderTool();
+renderPlan();
+</script>
+</body>
+</html>
