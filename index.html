@@ -12,322 +12,577 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
-  --red:#BA0C2F; --black:#000000; --silver:#5D6770; --white:#FFFFFF;
-  --paper:#F6F6F7; --line:#D5D8DC; --ok:#1E7B3C;
+  --red:#BA0C2F; --red-dark:#96091f; --red-tint:#FBEFF1;
+  --black:#111111; --silver:#5D6770; --white:#FFFFFF;
+  --paper:#F4F4F6; --line:#D5D8DC; --ok:#1E7B3C; --ok-tint:#E7F3EB;
+  --r:10px;
   --head:'Bitter', Georgia, 'Times New Roman', serif;
   --body:'Source Sans 3', 'Segoe UI', Arial, sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:var(--body);font-size:17px;line-height:1.5;color:var(--black);background:var(--paper)}
+body{font-family:var(--body);font-size:17px;line-height:1.5;color:var(--black);background:var(--paper);padding-bottom:6rem}
 a{color:var(--red)}
 :focus-visible{outline:3px solid var(--red);outline-offset:2px}
-header.top{background:var(--red);color:var(--white);padding:2.2rem 1.25rem 2rem}
-header.top .inner{max-width:900px;margin:0 auto}
-header.top h1{font-family:var(--head);font-weight:800;font-size:clamp(1.9rem,4.5vw,2.8rem);line-height:1.1;margin:0 0 .5rem;letter-spacing:-.01em}
-header.top p{margin:0;max-width:62ch;font-size:1.05rem}
-main{max-width:900px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
-.step{display:grid;grid-template-columns:4.2rem 1fr;gap:0 1rem;margin:2.2rem 0}
-.step-num{font-family:var(--head);font-weight:800;font-size:3.4rem;line-height:.9;color:var(--red);text-align:right}
-.step h2{font-family:var(--head);font-weight:700;font-size:1.55rem;margin:.1rem 0 .35rem}
-.step .lede{margin:0 0 1rem;color:var(--silver);max-width:68ch}
-.panel{background:var(--white);border:1px solid var(--line);border-left:5px solid var(--black);padding:1.1rem 1.2rem;margin-bottom:1rem}
-label{display:block;font-weight:600;margin:.6rem 0 .25rem}
-input[type=text],input[type=url],input[type=password],input[type=number],textarea,select{
-  font:inherit;width:100%;padding:.5rem .6rem;border:1.5px solid var(--silver);background:var(--white);color:var(--black);border-radius:0}
-textarea{min-height:5rem;resize:vertical}
-input[type=number]{width:6.5rem}
+h2,h3{font-family:var(--head)}
+code{background:var(--paper);padding:0 .25rem;border-radius:4px}
+
+/* header */
+.top{background:var(--red);color:var(--white)}
+.top .inner{max-width:880px;margin:0 auto;padding:1.3rem 1.25rem;display:flex;gap:1rem;align-items:center;justify-content:space-between}
+.top h1{font-family:var(--head);font-weight:800;font-size:clamp(1.45rem,3.5vw,2rem);line-height:1.15;margin:0}
+.top p{margin:.25rem 0 0;max-width:60ch}
+.top .ghost{background:transparent;color:var(--white);border-color:var(--white);flex:none}
+.top .ghost:hover{background:rgba(255,255,255,.15)}
+
+/* progress stepper */
+.stepper{background:var(--white);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.stepper ol{list-style:none;margin:0 auto;padding:.65rem 1.25rem;max-width:880px;display:flex}
+.stepper li{flex:1;position:relative}
+.stepper li:not(:last-child)::after{content:"";position:absolute;top:1.15rem;left:calc(50% + 1.3rem);right:calc(-50% + 1.3rem);height:2px;background:var(--line)}
+.stepper li.done:not(:last-child)::after{background:var(--ok)}
+.stepper button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:.2rem;width:100%;text-align:center;font-size:.88rem;font-weight:600;color:var(--silver);border-radius:8px;padding:.1rem 0}
+.stepper button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.stepper button:hover .dot{border-color:var(--silver)}
+.dot{width:2.3rem;height:2.3rem;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line);background:var(--white);font-family:var(--head);font-weight:800;color:var(--silver);position:relative;z-index:1}
+.stepper li.done .dot{background:var(--ok);border-color:var(--ok);color:var(--white)}
+.stepper button[aria-current=step]{color:var(--black)}
+.stepper button[aria-current=step] .dot{background:var(--red);border-color:var(--red);color:var(--white)}
+
+/* restore banner */
+.banner{background:#FFF8E1;border-bottom:1px solid #E8D9A8}
+.banner .inner{max-width:880px;margin:0 auto;padding:.7rem 1.25rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+.banner p{margin:0;flex:1 1 20rem}
+
+/* layout */
+main{max-width:880px;margin:0 auto;padding:1.6rem 1.25rem 2rem}
+.eyebrow{margin:0;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;font-size:.82rem}
+.screen h2{font-weight:800;font-size:clamp(1.6rem,4vw,2.1rem);line-height:1.15;margin:.15rem 0 .4rem}
+.screen h2:focus{outline:none}
+.lede{margin:0 0 1.4rem;color:var(--silver);max-width:66ch;font-size:1.05rem}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:1.1rem 1.2rem;margin-bottom:1rem}
+.card h3{margin:0 0 .2rem;font-size:1.15rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
-.row > input[type=url]{flex:1 1 18rem;width:auto}
-button,.btn{font:inherit;font-weight:700;cursor:pointer;border:2px solid var(--black);background:var(--white);color:var(--black);padding:.45rem .95rem;border-radius:0}
-button:hover{background:var(--paper)}
-button.primary{background:var(--red);border-color:var(--red);color:var(--white)}
-button.primary:hover{background:#96091f}
-button.small{font-size:.88rem;padding:.2rem .6rem;border-width:1.5px}
+.row > input[type=url]{flex:1 1 12rem;width:auto}
+.hint{font-size:.93rem;color:var(--silver);margin:.3rem 0 0}
+fieldset{border:0;padding:0;margin:0 0 1.4rem;min-width:0}
+legend{font-family:var(--head);font-weight:700;font-size:1.15rem;padding:0;margin-bottom:.6rem}
+
+/* form controls */
+label{display:block;font-weight:600;margin:.7rem 0 .25rem}
+input[type=text],input[type=url],input[type=password],input[type=number],textarea,select{
+  font:inherit;width:100%;padding:.55rem .65rem;border:1.5px solid var(--silver);background:var(--white);color:var(--black);border-radius:8px}
+textarea{min-height:5rem;resize:vertical}
+button,.btn{font:inherit;font-weight:700;cursor:pointer;border:2px solid var(--black);background:var(--white);color:var(--black);padding:.5rem 1rem;border-radius:8px;text-decoration:none;display:inline-block;line-height:1.3}
+button:hover,.btn:hover{background:var(--paper)}
+.primary{background:var(--red);border-color:var(--red);color:var(--white)}
+.primary:hover{background:var(--red-dark);border-color:var(--red-dark)}
+.big{font-size:1.1rem;padding:.75rem 1.4rem}
+button.small{font-size:.88rem;padding:.25rem .65rem;border-width:1.5px}
+button.link{border:none;background:none;color:var(--red);text-decoration:underline;padding:.2rem .3rem;font-weight:600}
+button.link:hover{background:none;color:var(--red-dark)}
 button:disabled{opacity:.45;cursor:not-allowed}
-.drop{border:2px dashed var(--silver);background:var(--white);padding:1.6rem 1rem;text-align:center;cursor:pointer}
-.drop.over{border-color:var(--red);background:#FBEFF1}
-.drop strong{display:block;font-size:1.1rem}
-.hint{font-size:.92rem;color:var(--silver);margin:.35rem 0 0}
-.source{background:var(--white);border:1px solid var(--line);padding:.8rem 1rem;margin-top:.6rem}
-.source-head{display:flex;gap:.6rem;align-items:baseline;flex-wrap:wrap}
-.source-head b{flex:1 1 auto;word-break:break-word}
-.tag{font-size:.8rem;font-weight:700;padding:.05rem .45rem;border:1.5px solid var(--silver);color:var(--silver)}
-.tag.need{border-color:var(--red);color:var(--red)}
-.howto{background:var(--paper);padding:.7rem .9rem;margin:.6rem 0;font-size:.95rem}
-.howto ol{margin:.3rem 0 0;padding-left:1.3rem}
-details summary{cursor:pointer;font-weight:600;margin-top:.4rem}
-/* points */
-.plan{width:100%;border-collapse:collapse;background:var(--white)}
-.plan th,.plan td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--line);vertical-align:middle}
-.plan th{font-size:.9rem;color:var(--silver);font-weight:600}
-.swatch{display:inline-block;width:.85rem;height:.85rem;margin-right:.45rem;vertical-align:-.1rem}
-.bar{position:relative;height:2.6rem;border:2px solid var(--black);background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),var(--line) calc(10% - 1px),var(--line) 10%);display:flex;margin-top:1rem;overflow:hidden}
-.bar span{height:100%;transition:width .25s ease}
-.bar-status{font-family:var(--head);font-weight:700;font-size:1.25rem;margin:.5rem 0 0}
-.bar-status.good{color:var(--ok)} .bar-status.bad{color:var(--red)}
-@media (prefers-reduced-motion:reduce){.bar span{transition:none}}
-/* tabs */
-.tabs{display:flex;gap:0;border-bottom:2px solid var(--black)}
-.tabs button{border-bottom:none;margin-right:-2px;background:var(--paper)}
-.tabs button[aria-selected=true]{background:var(--black);color:var(--white)}
-.tabpanel{background:var(--white);border:2px solid var(--black);border-top:none;padding:1rem 1.2rem}
-.radios label{display:flex;gap:.5rem;align-items:flex-start;font-weight:400;margin:.3rem 0}
 .status{margin:.6rem 0 0;font-weight:600}
+.status:empty{display:none}
 .status.err{color:var(--red)} .status.ok{color:var(--ok)}
-/* questions */
-.q{background:var(--white);border:1px solid var(--line);border-top:4px solid var(--black);padding:.9rem 1rem;margin-top:.9rem}
-.q[data-type=mc]{border-top-color:var(--red)} .q[data-type=typed]{border-top-color:var(--silver)}
-.q-head{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
-.q-num{font-family:var(--head);font-weight:800;font-size:1.3rem;min-width:2rem}
-.q-head select{width:auto}
-.q-pts{margin-left:auto;font-weight:700}
-.choice{display:flex;gap:.5rem;align-items:center;margin:.35rem 0}
-.choice input[type=text]{flex:1}
-.choice input[type=radio],.radios input{width:1.15rem;height:1.15rem;accent-color:var(--red);flex:none}
-.problems{color:var(--red);margin:.5rem 0 0;padding-left:1.2rem}
-.warn{color:var(--silver);margin:.5rem 0 0;padding-left:1.2rem}
-.walk{margin:.2rem 0 .8rem;padding-left:1.6rem}
-.walk > li{margin:0 0 1.1rem;padding-left:.3rem}
-.walk > li::marker{font-family:var(--head);font-weight:800;color:var(--red);font-size:1.15rem}
-.walk .sub{margin:.2rem 0 .5rem}
-.tools{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0 0}
-.tools label{display:flex;gap:.45rem;align-items:center;font-weight:600;margin:0;padding:.4rem .75rem;border:1.5px solid var(--silver);cursor:pointer}
-.tools label:has(input:checked){border-color:var(--red);background:#FBEFF1}
-.tools input{accent-color:var(--red);width:1.1rem;height:1.1rem}
-a.btn{display:inline-block;text-decoration:none}
-a.btn:hover{background:var(--paper)}
-.trouble dt{font-weight:700;margin-top:.8rem}
-.trouble dd{margin:.2rem 0 0}
-.star{color:var(--red);font-family:var(--head);font-weight:800;font-size:1.5rem;line-height:1;width:1rem;text-align:center;flex:none}
-.keynote{display:flex;gap:.7rem;align-items:flex-start;background:var(--white);border-left:5px solid var(--red);padding:.7rem 1rem;margin:0 0 .5rem}
-.keynote p{margin:0}
-.choice.is-correct input[type=text]{border-color:var(--red);border-width:2px}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.empty{background:var(--white);border:2px dashed var(--line);padding:1.4rem;text-align:center;color:var(--silver)}
-@media (max-width:640px){
-  .step{grid-template-columns:1fr}
-  .step-num{text-align:left;font-size:2.4rem;margin-bottom:.2rem}
-  .plan th:nth-child(4),.plan td:nth-child(4){display:none}
+
+/* choice cards */
+.choices{display:grid;gap:.65rem;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))}
+.choice-card{display:flex;gap:.65rem;align-items:flex-start;padding:.85rem .95rem;border:2px solid var(--line);border-radius:var(--r);background:var(--white);cursor:pointer;font-weight:400;margin:0}
+.choice-card:hover{border-color:var(--silver)}
+.choice-card:has(input:checked){border-color:var(--red);background:var(--red-tint)}
+.choice-card input{accent-color:var(--red);width:1.15rem;height:1.15rem;margin-top:.2rem;flex:none}
+.choice-card b{display:block;font-size:1.02rem}
+.choice-card .hint{display:block;margin:.1rem 0 0}
+.rec{font-size:.72rem;font-weight:700;color:var(--white);background:var(--red);border-radius:99px;padding:.08rem .5rem;margin-left:.35rem;vertical-align:.12rem;letter-spacing:.02em}
+
+/* step 1 */
+.drop{border:2.5px dashed var(--silver);border-radius:var(--r);background:var(--white);padding:2.2rem 1rem;text-align:center;cursor:pointer;transition:background .15s,border-color .15s}
+.drop:hover{border-color:var(--black)}
+.drop.over{border-color:var(--red);background:var(--red-tint)}
+.drop-icon{font-size:2rem;line-height:1;color:var(--red);margin-bottom:.4rem}
+.drop strong{display:block;font-size:1.15rem}
+.or{display:flex;align-items:center;gap:.8rem;color:var(--silver);margin:1.1rem 0;font-weight:600}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.list-head{margin:1.8rem 0 .3rem;font-size:1.2rem}
+.source{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:.8rem 1rem;margin-top:.6rem}
+.source-head{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.source-head b{flex:1 1 12rem;word-break:break-word}
+.kind{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--silver);min-width:4.5rem}
+.chip{font-size:.82rem;font-weight:700;padding:.1rem .6rem;border-radius:99px;background:var(--paper);color:var(--silver);white-space:nowrap}
+.chip.ok{background:var(--ok-tint);color:var(--ok)}
+.chip.need{background:var(--red-tint);color:var(--red)}
+.howto{background:var(--paper);border-radius:8px;padding:.75rem .95rem;margin:.7rem 0;font-size:.96rem}
+.howto ol{margin:.35rem 0 0;padding-left:1.3rem}
+.howto li{margin:.15rem 0}
+details summary{cursor:pointer;font-weight:600;margin-top:.45rem;color:var(--silver)}
+.empty{background:var(--white);border:2px dashed var(--line);border-radius:var(--r);padding:1.4rem;text-align:center;color:var(--silver)}
+
+/* step 2 */
+.presets{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.presets .lbl{font-weight:700;margin-right:.2rem}
+.types{display:grid;gap:.7rem}
+.type-row{display:grid;grid-template-columns:1.5fr 1fr 1fr .8fr;gap:1rem;align-items:end;background:var(--white);border:1px solid var(--line);border-left:7px solid var(--c);border-radius:var(--r);padding:.9rem 1.1rem}
+.type-name{align-self:center}
+.type-name b{display:block;font-size:1.08rem;font-family:var(--head)}
+.type-name .hint{margin:0}
+.field label,.field .lbl{display:block;font-size:.85rem;font-weight:600;color:var(--silver);margin:0 0 .25rem}
+.field .each{font-weight:700;font-size:1.05rem;display:block;padding:.45rem 0}
+.num{display:flex;align-items:stretch}
+.num input{width:3.6rem;text-align:center;border-radius:0;border-left:0;border-right:0;-moz-appearance:textfield;appearance:textfield}
+.num input::-webkit-inner-spin-button,.num input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.num button{padding:.3rem .75rem;font-size:1.15rem;line-height:1;border:1.5px solid var(--silver)}
+.num button:first-child{border-radius:8px 0 0 8px}
+.num button:last-child{border-radius:0 8px 8px 0}
+.pts{display:flex;align-items:center;gap:.4rem}
+.pts input{width:5.2rem}
+.meter{margin-top:1rem}
+.bar{position:relative;height:1.6rem;border-radius:99px;background:var(--paper);border:1.5px solid var(--line);display:flex;overflow:hidden}
+.bar span{height:100%;transition:width .25s ease}
+.meter-row{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-top:.6rem}
+.bar-status{font-family:var(--head);font-weight:700;font-size:1.2rem;margin:0;flex:1}
+.bar-status.good{color:var(--ok)} .bar-status.bad{color:var(--red)}
+.swatch{display:inline-block;width:.85rem;height:.85rem;border-radius:3px;margin-right:.4rem;vertical-align:-.08rem;flex:none}
+@media (prefers-reduced-motion:reduce){.bar span,.drop{transition:none}}
+
+/* step 3 */
+.tools{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0 0}
+.tools label{display:flex;gap:.45rem;align-items:center;font-weight:600;margin:0;padding:.45rem .85rem;border:2px solid var(--line);border-radius:99px;cursor:pointer;background:var(--white)}
+.tools label:hover{border-color:var(--silver)}
+.tools label:has(input:checked){border-color:var(--red);background:var(--red-tint)}
+.tools input{accent-color:var(--red);width:1.1rem;height:1.1rem}
+.walk{list-style:none;margin:.3rem 0 0;padding:0;counter-reset:w}
+.walk > li{counter-increment:w;position:relative;padding:0 0 1.4rem 3.2rem;margin:0}
+.walk > li::before{content:counter(w);position:absolute;left:0;top:0;width:2.25rem;height:2.25rem;border-radius:50%;background:var(--black);color:var(--white);display:grid;place-items:center;font-family:var(--head);font-weight:800}
+.walk > li:not(:last-child)::after{content:"";position:absolute;left:1.08rem;top:2.5rem;bottom:.3rem;width:2px;background:var(--line)}
+.walk > li.done::before{content:"✓";background:var(--ok)}
+.walk h3{font-size:1.1rem;margin:.25rem 0 .3rem}
+.walk p{margin:0 0 .6rem}
+.trouble{border-top:1px solid var(--line);padding-top:.6rem}
+.trouble dt{font-weight:700;margin-top:.9rem}
+.trouble dd{margin:.2rem 0 0}
+
+/* step 4 */
+.summary{display:flex;gap:.6rem 1.4rem;flex-wrap:wrap;align-items:center}
+.sum-item{display:flex;align-items:center}
+.off{color:var(--red);font-weight:600}
+.flash{background:var(--ok-tint);color:var(--ok);font-weight:700;border-radius:8px;padding:.6rem .9rem;margin:0 0 1rem}
+.keynote{display:flex;gap:.7rem;align-items:flex-start;background:var(--white);border-left:5px solid var(--red);border-radius:0 var(--r) var(--r) 0;padding:.7rem 1rem;margin:0 0 .5rem}
+.keynote p{margin:0}
+.star{color:var(--red);font-family:var(--head);font-weight:800;font-size:1.5rem;line-height:1;width:1rem;text-align:center;flex:none}
+.q{background:var(--white);border:1px solid var(--line);border-top:6px solid var(--c);border-radius:var(--r);padding:1rem 1.1rem;margin-top:1rem}
+.q.has-issue{box-shadow:0 0 0 2px var(--red)}
+.q-head{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.q-num{font-family:var(--head);font-weight:800;font-size:1.35rem;min-width:2rem}
+.q-head select{width:auto}
+.q-pts{margin-left:auto;font-weight:700;background:var(--paper);border-radius:99px;padding:.1rem .7rem}
+.opt{display:flex;gap:.5rem;align-items:center;margin:.4rem 0}
+.opt input[type=text]{flex:1}
+.opt input[type=radio],.radios input{width:1.15rem;height:1.15rem;accent-color:var(--red);flex:none}
+.opt.is-correct input[type=text]{border-color:var(--red);border-width:2px}
+.radios label{display:flex;gap:.5rem;align-items:center;font-weight:400;margin:.3rem 0}
+.q-issues{margin:.7rem 0 0;padding:.5rem .8rem .5rem 1.8rem;background:var(--red-tint);color:var(--red);border-radius:8px;font-weight:600}
+.q-issues:empty{display:none}
+.add-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:1.2rem;background:var(--white);border:2px dashed var(--line);border-radius:var(--r);padding:.8rem 1rem}
+.add-row .lbl{font-weight:700;margin-right:.3rem}
+
+/* step 5 */
+.check{list-style:none;padding:0;margin:.4rem 0 1.1rem}
+.check li{display:flex;gap:.6rem;align-items:baseline;padding:.5rem 0;border-bottom:1px solid var(--line)}
+.check li > span:first-child{font-weight:800;width:1.2rem;flex:none;text-align:center}
+.check .bad > span:first-child{color:var(--red)}
+.check .good{color:var(--ok);font-weight:700}
+.check .note{color:var(--silver)}
+
+/* bottom nav */
+.navbar{position:fixed;left:0;right:0;bottom:0;background:var(--white);border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.06);z-index:6}
+.navbar .inner{max-width:880px;margin:0 auto;padding:.7rem 1.25rem;display:flex;gap:1rem;align-items:center}
+#navHint{flex:1;margin:0;text-align:center;color:var(--silver);font-size:.95rem}
+
+@media (max-width:700px){
+  .two{grid-template-columns:1fr}
+  .type-row{grid-template-columns:1fr 1fr}
+  .type-name{grid-column:1/-1}
+  .stepper .lbl{display:none}
+  .stepper button[aria-current=step] .lbl{display:block;position:absolute;top:2.45rem;white-space:nowrap;font-size:.8rem}
+  .stepper ol{padding-bottom:1.4rem}
+  .top .inner{flex-direction:column;align-items:flex-start}
+  #navHint{font-size:.85rem}
 }
 </style>
 </head>
 <body>
+
 <header class="top">
   <div class="inner">
-    <h1>Turn class materials into a Canvas quiz</h1>
-    <p>Add study guides, old quizzes, slides, or video transcripts. Set the points. Review the questions. Download a file Canvas can import.</p>
+    <div>
+      <h1>Materials to Canvas Quiz</h1>
+      <p>Turn study guides, old quizzes, slides, or videos into a quiz you can import into Canvas.</p>
+    </div>
+    <button class="ghost small" id="startOver">Start over</button>
   </div>
 </header>
 
+<nav class="stepper" aria-label="Progress">
+  <ol>
+    <li><button data-go="1"><span class="dot">1</span><span class="lbl">Materials</span></button></li>
+    <li><button data-go="2"><span class="dot">2</span><span class="lbl">Points</span></button></li>
+    <li><button data-go="3"><span class="dot">3</span><span class="lbl">Get questions</span></button></li>
+    <li><button data-go="4"><span class="dot">4</span><span class="lbl">Review</span></button></li>
+    <li><button data-go="5"><span class="dot">5</span><span class="lbl">Download</span></button></li>
+  </ol>
+</nav>
+
+<div class="banner" id="restoreBanner" hidden>
+  <div class="inner">
+    <p id="restoreText"></p>
+    <div class="row">
+      <button class="primary small" id="restoreYes">Pick up where I left off</button>
+      <button class="small" id="restoreNo">Start fresh</button>
+    </div>
+  </div>
+</div>
+
 <main>
 
-<!-- STEP 1 -->
-<section class="step" aria-labelledby="h1">
-  <div class="step-num" aria-hidden="true">1</div>
-  <div>
-    <h2 id="h1">Add your materials</h2>
-    <p class="lede">Upload files or paste links. Everything is read here in your browser; nothing is uploaded to a server.</p>
+<!-- ================= STEP 1 ================= -->
+<section class="screen" data-step="1" aria-labelledby="t1">
+  <p class="eyebrow">Step 1 of 5</p>
+  <h2 id="t1">What should the quiz cover?</h2>
+  <p class="lede">Add anything you'd teach from or test with: notes, a study guide, an old quiz, slides, or a video. Add as many as you like. Files are read here in your browser and never uploaded to a server.</p>
 
-    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose files to upload">
-      <strong>Drop files here or click to choose</strong>
-      <span class="hint">PDF, Word (.docx), PowerPoint (.pptx), or plain text (.txt)</span>
-    </div>
-    <input type="file" id="fileInput" multiple accept=".pdf,.docx,.pptx,.txt" hidden>
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose files to upload">
+    <div class="drop-icon" aria-hidden="true">⬆</div>
+    <strong>Drag files here, or click to choose</strong>
+    <span class="hint">PDF, Word (.docx), PowerPoint (.pptx), or plain text (.txt)</span>
+  </div>
+  <input type="file" id="fileInput" multiple accept=".pdf,.docx,.pptx,.txt" hidden>
 
-    <div class="panel" style="margin-top:1rem">
-      <label for="linkInput">Link to a YouTube video, website, or Canva presentation</label>
-      <div class="row">
+  <div class="or">or</div>
+
+  <div class="two">
+    <div class="card">
+      <h3>Add a link</h3>
+      <p class="hint" style="margin-top:0">A YouTube video, a website, or a Canva presentation</p>
+      <label for="linkInput" class="visually-hidden">Link</label>
+      <div class="row" style="margin-top:.6rem">
         <input type="url" id="linkInput" placeholder="https://">
         <button id="addLink">Add link</button>
       </div>
-      <details>
-        <summary>Or paste text directly</summary>
-        <label for="pasteName">Name</label>
+    </div>
+    <div class="card">
+      <h3>Paste text</h3>
+      <p class="hint" style="margin-top:0">Copy text from anywhere and paste it in</p>
+      <button id="openPaste" style="margin-top:.6rem">Paste text</button>
+      <div id="pasteForm" hidden>
+        <label for="pasteName">Name it</label>
         <input type="text" id="pasteName" placeholder="e.g. Chapter 4 notes">
         <label for="pasteText">Text</label>
         <textarea id="pasteText" rows="6"></textarea>
-        <button id="addPaste" style="margin-top:.5rem">Add pasted text</button>
-      </details>
+        <div class="row" style="margin-top:.5rem">
+          <button class="primary" id="addPaste">Add text</button>
+          <button class="link" id="cancelPaste">Cancel</button>
+        </div>
+      </div>
     </div>
-
-    <div id="sourceList"></div>
   </div>
+
+  <h3 class="list-head" id="srcHead" hidden>Your materials</h3>
+  <div id="sourceList"></div>
 </section>
 
-<!-- STEP 2 -->
-<section class="step" aria-labelledby="h2">
-  <div class="step-num" aria-hidden="true">2</div>
-  <div>
-    <h2 id="h2">Set the points</h2>
-    <p class="lede">Choose how many questions of each type and how many points that type is worth in total. The three totals must add up to 100. Points are split evenly across the questions of each type.</p>
-    <div style="overflow-x:auto">
-    <table class="plan">
-      <thead><tr><th>Question type</th><th>How many</th><th>Points for this type</th><th>Each question</th></tr></thead>
-      <tbody>
-        <tr><td><span class="swatch" style="background:var(--red)"></span>Multiple choice</td>
-          <td><input type="number" min="0" max="100" id="n-mc" value="10" aria-label="Number of multiple choice questions"></td>
-          <td><input type="number" min="0" max="100" step="0.5" id="p-mc" value="50" aria-label="Points for multiple choice"></td>
-          <td id="e-mc"></td></tr>
-        <tr><td><span class="swatch" style="background:var(--black)"></span>True/false</td>
-          <td><input type="number" min="0" max="100" id="n-tf" value="5" aria-label="Number of true/false questions"></td>
-          <td><input type="number" min="0" max="100" step="0.5" id="p-tf" value="20" aria-label="Points for true/false"></td>
-          <td id="e-tf"></td></tr>
-        <tr><td><span class="swatch" style="background:var(--silver)"></span>Typed response</td>
-          <td><input type="number" min="0" max="100" id="n-typed" value="3" aria-label="Number of typed response questions"></td>
-          <td><input type="number" min="0" max="100" step="0.5" id="p-typed" value="30" aria-label="Points for typed response"></td>
-          <td id="e-typed"></td></tr>
-      </tbody>
-    </table>
+<!-- ================= STEP 2 ================= -->
+<section class="screen" data-step="2" aria-labelledby="t2" hidden>
+  <p class="eyebrow">Step 2 of 5</p>
+  <h2 id="t2">Set up the quiz</h2>
+  <p class="lede">Choose how many questions of each kind and how many points that kind is worth in total. The quiz always adds up to 100 points, and each kind's points are split evenly across its questions.</p>
+
+  <div class="presets">
+    <span class="lbl">Quick start:</span>
+    <button class="small" data-preset="standard">Mixed quiz</button>
+    <button class="small" data-preset="mc">Multiple choice only</button>
+    <button class="small" data-preset="quick">Quick check</button>
+    <button class="small" data-preset="vocab">Vocabulary</button>
+  </div>
+
+  <div class="types">
+    <div class="type-row" style="--c:var(--red)">
+      <div class="type-name"><b>Multiple choice</b><p class="hint">4 choices, one right answer</p></div>
+      <div class="field"><label for="n-mc">Questions</label>
+        <div class="num"><button data-for="n-mc" data-delta="-1" aria-label="One fewer multiple choice">−</button><input type="number" id="n-mc" min="0" max="100" value="10"><button data-for="n-mc" data-delta="1" aria-label="One more multiple choice">+</button></div></div>
+      <div class="field"><label for="p-mc">Points in total</label><div class="pts"><input type="number" id="p-mc" min="0" max="100" step="0.5" value="50"> pts</div></div>
+      <div class="field"><span class="lbl">Each question</span><span class="each" id="e-mc"></span></div>
     </div>
+    <div class="type-row" style="--c:var(--black)">
+      <div class="type-name"><b>True/false</b><p class="hint">A statement that's clearly true or false</p></div>
+      <div class="field"><label for="n-tf">Questions</label>
+        <div class="num"><button data-for="n-tf" data-delta="-1" aria-label="One fewer true/false">−</button><input type="number" id="n-tf" min="0" max="100" value="5"><button data-for="n-tf" data-delta="1" aria-label="One more true/false">+</button></div></div>
+      <div class="field"><label for="p-tf">Points in total</label><div class="pts"><input type="number" id="p-tf" min="0" max="100" step="0.5" value="20"> pts</div></div>
+      <div class="field"><span class="lbl">Each question</span><span class="each" id="e-tf"></span></div>
+    </div>
+    <div class="type-row" style="--c:var(--silver)">
+      <div class="type-name"><b>Typed response</b><p class="hint">Students type their own answer</p></div>
+      <div class="field"><label for="n-typed">Questions</label>
+        <div class="num"><button data-for="n-typed" data-delta="-1" aria-label="One fewer typed response">−</button><input type="number" id="n-typed" min="0" max="100" value="3"><button data-for="n-typed" data-delta="1" aria-label="One more typed response">+</button></div></div>
+      <div class="field"><label for="p-typed">Points in total</label><div class="pts"><input type="number" id="p-typed" min="0" max="100" step="0.5" value="30"> pts</div></div>
+      <div class="field"><span class="lbl">Each question</span><span class="each" id="e-typed"></span></div>
+    </div>
+  </div>
+
+  <div class="card meter">
     <div class="bar" id="bar" aria-hidden="true"></div>
-    <p class="bar-status" id="barStatus" role="status"></p>
-
-    <fieldset class="panel radios" style="margin-top:1rem">
-      <legend style="font-weight:700">How should typed responses be graded?</legend>
-      <label><input type="radio" name="typedMode" value="essay" checked> I'll grade them myself (Canvas essay question)</label>
-      <label><input type="radio" name="typedMode" value="auto"> Canvas grades them automatically by matching accepted answers (short answer; best for one- or two-word answers)</label>
-    </fieldset>
+    <div class="meter-row">
+      <p class="bar-status" id="barStatus" role="status"></p>
+      <button class="primary small" id="balance" hidden>Make it 100 for me</button>
+    </div>
   </div>
+
+  <fieldset id="typedBox" style="margin-top:1.4rem">
+    <legend>How should typed responses be graded?</legend>
+    <div class="choices">
+      <label class="choice-card"><input type="radio" name="typedMode" value="essay" checked>
+        <span><b>I'll grade them myself</b><span class="hint">Students write a few sentences, and you grade them in SpeedGrader. (Canvas essay question)</span></span></label>
+      <label class="choice-card"><input type="radio" name="typedMode" value="auto">
+        <span><b>Canvas grades them automatically</b><span class="hint">Best for one- or two-word answers. Canvas matches them against a list of accepted answers. (Short answer)</span></span></label>
+    </div>
+  </fieldset>
 </section>
 
-<!-- STEP 3 -->
-<section class="step" aria-labelledby="h3">
-  <div class="step-num" aria-hidden="true">3</div>
-  <div>
-    <h2 id="h3">Have AI write the questions</h2>
-    <p class="lede">You'll copy a set of instructions from this page into an AI chat, then copy its answer back. It takes about two minutes. Prefer to write your own questions? Skip to step 4.</p>
+<!-- ================= STEP 3 ================= -->
+<section class="screen" data-step="3" aria-labelledby="t3" hidden>
+  <p class="eyebrow">Step 3 of 5</p>
+  <h2 id="t3">Get your questions</h2>
+  <p class="lede">An AI writes the questions from your materials. You'll read and fix every one in the next step before anything goes to Canvas.</p>
 
-    <div class="panel radios">
-      <b>What's in your materials?</b>
-      <label><input type="radio" name="genMode" value="convert"> Quiz questions that already exist (an old quiz, a Microsoft Forms PDF). Convert them as written.</label>
-      <label><input type="radio" name="genMode" value="create" checked> Content to teach from (notes, a study guide, slides, a video). Write new questions.</label>
-      <label><input type="radio" name="genMode" value="both"> Some of each. Use existing questions first, then write new ones to fill the counts.</label>
+  <fieldset>
+    <legend>How do you want to make the questions?</legend>
+    <div class="choices">
+      <label class="choice-card"><input type="radio" name="path" value="chat" checked>
+        <span><b>Use an AI chat<span class="rec">Recommended</span></b><span class="hint">Copilot, ChatGPT, Gemini, or NotebookLM. Takes about two minutes.</span></span></label>
+      <label class="choice-card"><input type="radio" name="path" value="api">
+        <span><b>Use an API key</b><span class="hint">One click, if you have an Anthropic API key.</span></span></label>
+      <label class="choice-card"><input type="radio" name="path" value="own">
+        <span><b>Write my own</b><span class="hint">Skip the AI and type the questions yourself.</span></span></label>
+    </div>
+  </fieldset>
+
+  <div id="aiSetup">
+    <fieldset>
+      <legend>What's in your materials?</legend>
+      <div class="choices">
+        <label class="choice-card"><input type="radio" name="genMode" value="create" checked>
+          <span><b>Content to teach from</b><span class="hint">Notes, a study guide, slides, or a video. The AI writes new questions.</span></span></label>
+        <label class="choice-card"><input type="radio" name="genMode" value="convert">
+          <span><b>Questions that already exist</b><span class="hint">An old quiz or a Microsoft Forms PDF. The AI converts them as written.</span></span></label>
+        <label class="choice-card"><input type="radio" name="genMode" value="both">
+          <span><b>Some of each</b><span class="hint">Existing questions are used first, then new ones fill the counts.</span></span></label>
+      </div>
       <label for="notes">Anything the questions should keep in mind? (optional)</label>
       <input type="text" id="notes" placeholder="e.g. 7th grade, focus on vocabulary, avoid questions about dates">
-    </div>
-
-    <div class="tabs" role="tablist">
-      <button role="tab" id="tab-chat" aria-selected="true" aria-controls="panel-chat">Use an AI chat (recommended)</button>
-      <button role="tab" id="tab-api" aria-selected="false" aria-controls="panel-api">Use an API key</button>
-    </div>
-    <div class="tabpanel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
-      <ol class="walk">
-        <li><b>Choose the AI tool you'll use.</b>
-          <div class="tools" role="radiogroup" aria-label="AI tool">
-            <label><input type="radio" name="aiTool" value="copilot" checked> Microsoft Copilot</label>
-            <label><input type="radio" name="aiTool" value="chatgpt"> ChatGPT</label>
-            <label><input type="radio" name="aiTool" value="gemini"> Google Gemini</label>
-            <label><input type="radio" name="aiTool" value="notebooklm"> Google NotebookLM</label>
-          </div>
-          <p class="hint">Not sure? Choose Copilot and sign in with your school Microsoft account. Keep student names and grades out of your materials.</p>
-        </li>
-        <li><b>Copy the instructions.</b>
-          <p class="sub" id="copyExplain">This copies your materials and point plan in one piece. You won't see anything change; it's saved to your clipboard.</p>
-          <button class="primary" id="copyPrompt">Copy instructions for the AI</button>
-          <p class="status" id="copyStatus" role="status"></p>
-        </li>
-        <li><b id="openTitle">Open Copilot and paste.</b>
-          <p class="sub" id="openExplain"></p>
-          <a class="btn" id="openTool" href="https://copilot.microsoft.com" target="_blank" rel="noopener">Open Copilot in a new tab</a>
-        </li>
-        <li><b>Wait for the whole reply, then copy it.</b>
-          <p class="sub">The reply will look like computer code, starting with <code>{"questions"</code>. That's what you want. Wait until it stops writing, then <span id="copyWhere">click the Copy button on the code box</span>.</p>
-        </li>
-        <li><b>Come back to this tab and paste the reply here.</b>
-          <label for="responseBox" class="visually-hidden">The AI's reply</label>
-          <textarea id="responseBox" rows="6" placeholder="Click here and press Ctrl+V (Cmd+V on a Mac)"></textarea>
-          <button class="primary" id="loadResponse" style="margin-top:.5rem">Load questions</button>
-          <p class="status" id="loadStatus" role="status"></p>
-        </li>
-      </ol>
-      <details class="trouble">
-        <summary>Something went wrong?</summary>
-        <dl>
-          <dt>The AI says my message is too long, or won't send it.</dt>
-          <dd>Copy the short version below instead, which leaves out your materials. In the AI tool, attach your files with the paperclip or + button, paste the instructions, and send.
-            <br><button class="small" id="copyShort" style="margin-top:.4rem">Copy instructions without materials</button> <span class="status" id="shortStatus" role="status"></span></dd>
-          <dt>The reply stopped partway through.</dt>
-          <dd>Ask for fewer questions at a time. Lower the counts in step 2, copy and run it, and load those questions. Then set the counts for the rest, run it again, and choose <b>Cancel</b> when asked to replace, so the new questions are added to the end. Fix the counts back before you download.</dd>
-          <dt>The AI wrote a paragraph or asked me a question instead.</dt>
-          <dd>Reply to it with: <i>Please give me only the JSON, with no other text.</i> Then copy that reply.</dd>
-          <dt>Load questions shows an error.</dt>
-          <dd>Most often, part of the reply was missed. Clear the box, go back to the AI tab, copy the whole reply again, and paste it.</dd>
-        </dl>
-      </details>
-    </div>
-    <div class="tabpanel" id="panel-api" role="tabpanel" aria-labelledby="tab-api" hidden>
-      <label for="apiKey">Anthropic API key</label>
-      <input type="password" id="apiKey" autocomplete="off" placeholder="sk-ant-...">
-      <p class="hint">The key stays in this browser tab and is sent only to Anthropic. It is not saved; refreshing the page clears it.</p>
-      <label for="model">Model</label>
-      <input type="text" id="model" value="claude-sonnet-5">
-      <button class="primary" id="runApi" style="margin-top:.7rem">Write questions</button>
-      <p class="status" id="apiStatus" role="status"></p>
-    </div>
+    </fieldset>
   </div>
-</section>
 
-<!-- STEP 4 -->
-<section class="step" aria-labelledby="h4">
-  <div class="step-num" aria-hidden="true">4</div>
-  <div>
-    <h2 id="h4">Review and edit</h2>
-    <p class="lede">Read every question before you download. Points update automatically when you add, delete, or change a question's type.</p>
-    <div class="keynote"><span class="star">*</span><p>The correct answer is marked with a red asterisk. To change it, click the circle beside the right answer and the asterisk moves there. The asterisk is only a marker on this page; don't type asterisks into your questions or answers.</p></div>
-    <div id="qlist"><div class="empty">No questions yet. Load them in step 3, or add your own.</div></div>
-    <div class="row" style="margin-top:1rem">
-      <button class="small" data-add="mc">Add multiple choice</button>
-      <button class="small" data-add="tf">Add true/false</button>
-      <button class="small" data-add="typed">Add typed response</button>
-    </div>
-  </div>
-</section>
-
-<!-- STEP 5 -->
-<section class="step" aria-labelledby="h5">
-  <div class="step-num" aria-hidden="true">5</div>
-  <div>
-    <h2 id="h5">Download for Canvas</h2>
-    <div class="panel">
-      <label for="quizTitle">Quiz title</label>
-      <input type="text" id="quizTitle" placeholder="e.g. Unit 3 Review Quiz">
-      <ul class="problems" id="problems"></ul>
-      <ul class="warn" id="warnings"></ul>
-      <button class="primary" id="exportBtn" style="margin-top:.8rem">Download Canvas quiz (.zip)</button>
-      <p class="hint">After importing, turn on <b>Shuffle answers</b> in the quiz settings so answer order differs for each student. The steps are below.</p>
-    </div>
-    <details class="panel">
-      <summary>How to import the file into Canvas</summary>
-      <ol>
-        <li>Open your course and go to <b>Settings</b>, then <b>Import Course Content</b>.</li>
-        <li>For Content Type, choose <b>QTI .zip file</b>.</li>
-        <li>Choose the .zip you downloaded. Leave it zipped.</li>
-        <li>If you use New Quizzes, check <b>Import existing quizzes as New Quizzes</b> when it's offered.</li>
-        <li>Select <b>All content</b>, then <b>Import</b>. When the job says Completed, the quiz appears under Quizzes, unpublished.</li>
-        <li>Open the quiz and turn on <b>Shuffle answers</b>. In Classic Quizzes, click <b>Edit</b> and check <b>Shuffle Answers</b> under Options. In New Quizzes, open the <b>Settings</b> tab and turn on <b>Shuffle answers</b>.</li>
-        <li>Check the due date, time limit, and attempts, then <b>Publish</b>.</li>
-      </ol>
-      <p class="hint">If you converted an old quiz that has choices like "All of the above" or "Both A and B," edit those before you shuffle, or they'll stop making sense.</p>
+  <div class="card" id="panel-chat">
+    <ol class="walk">
+      <li id="w1"><h3>Choose the AI tool you'll use</h3>
+        <div class="tools" role="radiogroup" aria-label="AI tool">
+          <label><input type="radio" name="aiTool" value="copilot" checked> Microsoft Copilot</label>
+          <label><input type="radio" name="aiTool" value="chatgpt"> ChatGPT</label>
+          <label><input type="radio" name="aiTool" value="gemini"> Google Gemini</label>
+          <label><input type="radio" name="aiTool" value="notebooklm"> Google NotebookLM</label>
+        </div>
+        <p class="hint">Not sure? Choose Copilot and sign in with your school Microsoft account. Keep student names and grades out of your materials.</p>
+      </li>
+      <li id="w2"><h3>Copy the instructions</h3>
+        <p id="copyExplain"></p>
+        <button class="primary big" id="copyPrompt">Copy instructions for the AI</button>
+        <p class="status" id="copyStatus" role="status"></p>
+      </li>
+      <li id="w3"><h3 id="openTitle">Open Copilot and paste</h3>
+        <p id="openExplain"></p>
+        <a class="btn" id="openTool" href="https://copilot.microsoft.com" target="_blank" rel="noopener">Open Copilot in a new tab ↗</a>
+      </li>
+      <li id="w4"><h3>Wait for the whole reply, then copy it</h3>
+        <p>The reply will look like computer code, starting with <code>{"questions"</code>. That's what you want. Wait until it stops writing, then <span id="copyWhere">click the Copy button on the code box</span>.</p>
+      </li>
+      <li id="w5"><h3>Come back to this tab and paste the reply here</h3>
+        <label for="responseBox" class="visually-hidden">The AI's reply</label>
+        <textarea id="responseBox" rows="6" placeholder="Click here and press Ctrl+V (Cmd+V on a Mac)"></textarea>
+        <button class="primary" id="loadResponse" style="margin-top:.5rem">Load questions</button>
+        <p class="status" id="loadStatus" role="status"></p>
+      </li>
+    </ol>
+    <details class="trouble">
+      <summary>Something went wrong?</summary>
+      <dl>
+        <dt>The AI says my message is too long, or won't send it.</dt>
+        <dd>Copy the short version below instead, which leaves out your materials. In the AI tool, attach your files with the paperclip or + button, paste the instructions, and send.
+          <br><button class="small" id="copyShort" style="margin-top:.4rem">Copy instructions without materials</button> <span class="status" id="shortStatus" role="status"></span></dd>
+        <dt>The reply stopped partway through.</dt>
+        <dd>Ask for fewer questions at a time. Lower the counts in step 2, copy and run it, and load those questions. Then set the counts for the rest, run it again, and choose <b>Cancel</b> when asked to replace, so the new questions are added to the end. Fix the counts back before you download.</dd>
+        <dt>The AI wrote a paragraph or asked me a question instead.</dt>
+        <dd>Reply to it with: <i>Please give me only the JSON, with no other text.</i> Then copy that reply.</dd>
+        <dt>Load questions shows an error.</dt>
+        <dd>Most often, part of the reply was missed. Clear the box, go back to the AI tab, copy the whole reply again, and paste it.</dd>
+      </dl>
     </details>
+  </div>
+
+  <div class="card" id="panel-api" hidden>
+    <label for="apiKey" style="margin-top:0">Anthropic API key</label>
+    <input type="password" id="apiKey" autocomplete="off" placeholder="sk-ant-...">
+    <p class="hint">The key stays in this browser tab and is sent only to Anthropic. It is never saved; refreshing the page clears it.</p>
+    <label for="model">Model</label>
+    <input type="text" id="model" value="claude-sonnet-5">
+    <button class="primary big" id="runApi" style="margin-top:.9rem">Write questions</button>
+    <p class="status" id="apiStatus" role="status"></p>
+  </div>
+
+  <div class="card" id="panel-own" hidden>
+    <h3>No problem</h3>
+    <p>In the next step, use the <b>Add a question</b> buttons to write each one. Points are still split automatically using your plan from step 2.</p>
+    <button class="primary" data-go="4">Start writing questions →</button>
+  </div>
+</section>
+
+<!-- ================= STEP 4 ================= -->
+<section class="screen" data-step="4" aria-labelledby="t4" hidden>
+  <p class="eyebrow">Step 4 of 5</p>
+  <h2 id="t4">Review your questions</h2>
+  <p class="lede">Read every question before you download. Fix anything that's off, and change the correct answer if needed. Points update on their own when you add, delete, or change a question's type.</p>
+  <p class="flash" id="loadedNote" role="status" hidden></p>
+  <div class="card summary" id="summary" hidden></div>
+  <div class="keynote"><span class="star">*</span><p>The correct answer is marked with a red asterisk. To change it, click the circle beside the right answer and the asterisk moves there. The asterisk is only a marker on this page; don't type asterisks into your questions or answers.</p></div>
+  <div id="qlist"></div>
+  <div class="add-row">
+    <span class="lbl">Add a question:</span>
+    <button class="small" data-add="mc">+ Multiple choice</button>
+    <button class="small" data-add="tf">+ True/false</button>
+    <button class="small" data-add="typed">+ Typed response</button>
+  </div>
+</section>
+
+<!-- ================= STEP 5 ================= -->
+<section class="screen" data-step="5" aria-labelledby="t5" hidden>
+  <p class="eyebrow">Step 5 of 5</p>
+  <h2 id="t5">Download and import into Canvas</h2>
+  <p class="lede">Name the quiz, make sure everything below is checked off, then download the file and bring it into your course.</p>
+
+  <div class="card">
+    <label for="quizTitle" style="margin-top:0">Quiz title</label>
+    <input type="text" id="quizTitle" placeholder="e.g. Unit 3 Review Quiz">
+    <h3 style="margin-top:1.2rem">Before you download</h3>
+    <ul class="check" id="checklist"></ul>
+    <button class="primary big" id="exportBtn">Download Canvas quiz (.zip)</button>
+    <p class="status" id="exportStatus" role="status"></p>
+  </div>
+
+  <div class="card" id="importCard">
+    <h3>Import it into Canvas</h3>
+    <ol class="walk" style="margin-top:.8rem">
+      <li><h3>Open the import tool</h3><p>Open your course and go to <b>Settings</b>, then <b>Import Course Content</b>.</p></li>
+      <li><h3>Choose the file type</h3><p>For Content Type, choose <b>QTI .zip file</b>.</p></li>
+      <li><h3>Choose your file</h3><p>Choose the .zip you downloaded. Leave it zipped.</p></li>
+      <li><h3>New Quizzes users</h3><p>If you use New Quizzes, check <b>Import existing quizzes as New Quizzes</b> when it's offered.</p></li>
+      <li><h3>Import</h3><p>Select <b>All content</b>, then <b>Import</b>. When the job says Completed, the quiz appears under Quizzes, unpublished.</p></li>
+      <li><h3>Turn on Shuffle answers</h3><p>So answer order differs for each student. In Classic Quizzes, click <b>Edit</b> and check <b>Shuffle Answers</b> under Options. In New Quizzes, open the <b>Settings</b> tab and turn on <b>Shuffle answers</b>.</p>
+        <p class="hint">If you converted an old quiz that has choices like "All of the above" or "Both A and B," edit those before you shuffle, or they'll stop making sense.</p></li>
+      <li><h3>Finish and publish</h3><p>Check the due date, time limit, and attempts, then <b>Publish</b>.</p></li>
+    </ol>
   </div>
 </section>
 
 </main>
 
+<footer class="navbar">
+  <div class="inner">
+    <button id="backBtn">← Back</button>
+    <p id="navHint" role="status"></p>
+    <button class="primary" id="nextBtn">Next →</button>
+  </div>
+</footer>
+
 <script>
-/* ---------- setup ---------- */
+/* ================= setup ================= */
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const uid = () => Math.random().toString(36).slice(2, 9);
 const TYPES = { mc: 'Multiple choice', tf: 'True/false', typed: 'Typed response' };
 const COLORS = { mc: 'var(--red)', tf: 'var(--black)', typed: 'var(--silver)' };
-const state = { sources: [], questions: [] };
+const state = { sources: [], questions: [], downloaded: false };
 const escHtml = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const escXml = s => escHtml(s).replace(/'/g,'&apos;');
 const fmt = n => (Math.round(n * 100) / 100).toString();
+const radio = name => document.querySelector(`input[name=${name}]:checked`).value;
+const setRadio = (name, v) => { const r = document.querySelector(`input[name=${name}][value="${v}"]`); if (r) r.checked = true; };
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const smooth = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 
-/* ---------- step 1: sources ---------- */
+/* ================= navigation ================= */
+let cur = 1;
+const NEXT = { 1: 'Next: Points', 2: 'Next: Get questions', 3: 'Next: Review', 4: 'Next: Download' };
+
+function go(n, focus = true) {
+  cur = Math.min(5, Math.max(1, n));
+  $$('.screen').forEach(s => s.hidden = +s.dataset.step !== cur);
+  if (cur !== 4) $('#loadedNote').hidden = true;
+  updateNav();
+  window.scrollTo({ top: 0, behavior: focus ? smooth : 'auto' });
+  if (focus) { const h = $(`.screen[data-step="${cur}"] h2`); h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+  save();
+}
+$('#backBtn').addEventListener('click', () => go(cur - 1));
+$('#nextBtn').addEventListener('click', () => go(cur + 1));
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g) { go(+g.dataset.go); return; }
+  const fq = e.target.closest('[data-fixq]'); if (fq) { jumpToQuestion(fq.dataset.fixq); return; }
+  const gs = e.target.closest('[data-gostep]'); if (gs) { go(+gs.dataset.gostep); return; }
+  const ff = e.target.closest('[data-focus]'); if (ff) { $('#' + ff.dataset.focus).focus(); }
+});
+
+function stepDone(n, iss) {
+  const p = plan();
+  if (n === 1) return state.sources.some(s => s.text.trim());
+  if (n === 2) return Math.round(planTotal(p) * 100) === 10000 && Object.values(p).some(t => t.count);
+  if (n === 3) return state.questions.length > 0;
+  if (n === 4) return state.questions.length > 0 && !Object.values(iss.qIssues).some(a => a.length);
+  if (n === 5) return state.downloaded;
+}
+
+function updateNav() {
+  const iss = getIssues();
+  $$('.stepper li').forEach((li, i) => {
+    const n = i + 1, done = stepDone(n, iss), b = li.querySelector('button');
+    li.classList.toggle('done', done);
+    if (n === cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+    li.querySelector('.dot').textContent = done && n !== cur ? '✓' : n;
+  });
+  $('#backBtn').style.visibility = cur === 1 ? 'hidden' : 'visible';
+  $('#nextBtn').style.visibility = cur === 5 ? 'hidden' : 'visible';
+  $('#nextBtn').textContent = (NEXT[cur] || 'Next') + ' →';
+  let hint = '', block = false;
+  if (cur === 1) {
+    const n = state.sources.filter(s => s.text.trim()).length;
+    hint = n ? plural(n, 'material') + ' ready.' : 'Add a material, or click Next if you\'ll write your own questions.';
+  } else if (cur === 2) {
+    block = !stepDone(2, iss);
+    hint = block ? 'Points need to add up to 100 before you continue.' : 'Points add up to 100.';
+  } else if (cur === 3) {
+    hint = state.questions.length ? plural(state.questions.length, 'question') + ' loaded.'
+      : radio('path') === 'own' ? 'Click Next to start writing questions.' : 'Load your questions to continue.';
+  } else if (cur === 4) {
+    const bad = Object.values(iss.qIssues).filter(a => a.length).length;
+    hint = !state.questions.length ? 'Add at least one question.' : bad ? `${plural(bad, 'question')} need${bad === 1 ? 's' : ''} attention.` : 'All questions look complete.';
+  }
+  $('#navHint').textContent = hint;
+  $('#nextBtn').disabled = block;
+}
+function refresh() { updateNav(); save(); }
+
+/* ================= step 1: materials ================= */
 const drop = $('#drop'), fileInput = $('#fileInput');
 drop.addEventListener('click', () => fileInput.click());
 drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
@@ -337,6 +592,7 @@ drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('
 fileInput.addEventListener('change', () => { handleFiles(fileInput.files); fileInput.value = ''; });
 
 async function handleFiles(files) {
+  dismissRestore();
   for (const f of files) {
     const src = { id: uid(), name: f.name, kind: 'file', text: '', status: 'Reading…' };
     state.sources.push(src); renderSources();
@@ -364,12 +620,12 @@ async function readPdf(file) {
     const items = tc.items.filter(i => i.str && i.str.trim())
       .map(i => ({ s: i.str, x: i.transform[4], y: i.transform[5] }))
       .sort((a, b) => (b.y - a.y) || (a.x - b.x));
-    const lines = []; let cur = [], lastY = null;
+    const lines = []; let line = [], lastY = null;
     for (const it of items) {
-      if (lastY !== null && Math.abs(it.y - lastY) > 3) { lines.push(cur); cur = []; }
-      cur.push(it); lastY = it.y;
+      if (lastY !== null && Math.abs(it.y - lastY) > 3) { lines.push(line); line = []; }
+      line.push(it); lastY = it.y;
     }
-    if (cur.length) lines.push(cur);
+    if (line.length) lines.push(line);
     pages.push(lines.map(l => l.sort((a, b) => a.x - b.x).map(i => i.s).join(' ').replace(/\s+/g, ' ').trim()).join('\n'));
   }
   return pages.join('\n\n');
@@ -452,29 +708,45 @@ async function addLink() {
   }
 }
 
+$('#openPaste').addEventListener('click', () => { $('#pasteForm').hidden = false; $('#openPaste').hidden = true; $('#pasteText').focus(); });
+$('#cancelPaste').addEventListener('click', () => { $('#pasteForm').hidden = true; $('#openPaste').hidden = false; });
 $('#addPaste').addEventListener('click', () => {
-  const text = $('#pasteText').value.trim(); if (!text) return;
+  const text = $('#pasteText').value.trim(); if (!text) { $('#pasteText').focus(); return; }
   state.sources.push({ id: uid(), name: $('#pasteName').value.trim() || 'Pasted text', kind: 'paste', text, status: '' });
-  $('#pasteText').value = ''; $('#pasteName').value = ''; renderSources();
+  $('#pasteText').value = ''; $('#pasteName').value = '';
+  $('#pasteForm').hidden = true; $('#openPaste').hidden = false;
+  renderSources();
 });
 
 function renderSources() {
+  $('#srcHead').hidden = !state.sources.length;
+  $('#srcHead').textContent = `Your materials (${state.sources.length})`;
   $('#sourceList').innerHTML = state.sources.map(s => {
     const needs = !s.text && (s.kind === 'youtube' || s.kind === 'canva' || s.status === 'needs-paste');
+    const reading = s.status.endsWith('…');
     const label = { file: 'File', paste: 'Pasted', youtube: 'YouTube', canva: 'Canva', web: 'Website' }[s.kind];
     const how = s.kind === 'youtube' ? HOWTO.youtube : s.kind === 'canva' ? HOWTO.canva : HOWTO.web;
-    let body;
-    if (needs) body = `<div class="howto">${how}</div>
+    let chip, body = '';
+    if (needs) {
+      chip = '<span class="chip need">Needs text</span>';
+      body = `<div class="howto">${how}</div>
         <textarea data-paste="${s.id}" rows="5" aria-label="Paste text for ${escHtml(s.name)}"></textarea>
-        <button class="small" data-save="${s.id}" style="margin-top:.4rem">Save text</button>`;
-    else if (s.text) body = `<details><summary>Check the text (${s.text.length.toLocaleString()} characters)</summary>
+        <button class="primary small" data-save="${s.id}" style="margin-top:.4rem">Save text</button>`;
+    } else if (s.text) {
+      chip = '<span class="chip ok">✓ Ready</span>';
+      body = `<details><summary>Check the text (${s.text.length.toLocaleString()} characters)</summary>
         <textarea data-edit="${s.id}" rows="8" aria-label="Text from ${escHtml(s.name)}">${escHtml(s.text)}</textarea></details>`;
-    else body = `<p class="status ${s.status.endsWith('…') ? '' : 'err'}">${escHtml(s.status)}</p>`;
+    } else if (reading) {
+      chip = `<span class="chip">${escHtml(s.status)}</span>`;
+    } else {
+      chip = '<span class="chip need">Problem</span>';
+      body = `<p class="status err">${escHtml(s.status)}</p>`;
+    }
     return `<div class="source"><div class="source-head">
-        <span class="tag ${needs ? 'need' : ''}">${needs ? 'Needs text' : label}</span>
-        <b>${escHtml(s.name)}</b>
-        <button class="small" data-remove="${s.id}">Remove</button></div>${body}</div>`;
+        <span class="kind">${label}</span><b>${escHtml(s.name)}</b>${chip}
+        <button class="link" data-remove="${s.id}">Remove</button></div>${body}</div>`;
   }).join('');
+  refresh();
 }
 
 $('#sourceList').addEventListener('click', e => {
@@ -489,16 +761,17 @@ $('#sourceList').addEventListener('click', e => {
 $('#sourceList').addEventListener('input', e => {
   const id = e.target.dataset.edit; if (!id) return;
   state.sources.find(s => s.id === id).text = e.target.value;
+  refresh();
 });
 
-/* ---------- step 2: points ---------- */
+/* ================= step 2: points ================= */
 function plan() {
   const p = {};
   for (const k of Object.keys(TYPES)) p[k] = { count: Math.max(0, parseInt($('#n-' + k).value) || 0), points: Math.max(0, parseFloat($('#p-' + k).value) || 0) };
   return p;
 }
 const planTotal = p => Object.values(p).reduce((a, t) => a + t.points, 0);
-const typedMode = () => document.querySelector('input[name=typedMode]:checked').value;
+const typedMode = () => radio('typedMode');
 
 // Split a total across n questions so they add up exactly (e.g. 33.33 + 33.33 + 33.34).
 function distribute(total, n) {
@@ -516,22 +789,61 @@ function renderPlan() {
   $('#bar').innerHTML = Object.keys(TYPES).map(k => `<span style="width:${Math.min(p[k].points, 100)}%;background:${COLORS[k]}"></span>`).join('');
   const st = $('#barStatus'), diff = Math.round((100 - total) * 100) / 100;
   st.className = 'bar-status ' + (diff === 0 ? 'good' : 'bad');
-  st.textContent = diff === 0 ? '100 of 100 points. Ready.' : diff > 0 ? `${fmt(total)} of 100 points. Add ${fmt(diff)} more.` : `${fmt(total)} of 100 points. Remove ${fmt(-diff)}.`;
+  st.textContent = diff === 0 ? '✓ 100 of 100 points. Ready.' : diff > 0 ? `${fmt(total)} of 100 points. Add ${fmt(diff)} more.` : `${fmt(total)} of 100 points. Remove ${fmt(-diff)}.`;
+  $('#balance').hidden = diff === 0 || !Object.values(p).some(t => t.count);
+  $('#typedBox').hidden = !p.typed.count && !state.questions.some(q => q.type === 'typed');
   renderQuestions(); validate();
 }
-document.querySelectorAll('.plan input').forEach(i => i.addEventListener('input', renderPlan));
-document.querySelectorAll('input[name=typedMode]').forEach(i => i.addEventListener('change', renderPlan));
+$$('.types input').forEach(i => i.addEventListener('input', renderPlan));
+$$('input[name=typedMode]').forEach(i => i.addEventListener('change', renderPlan));
 
-/* ---------- step 3: generation ---------- */
-for (const [tab, other] of [['chat', 'api'], ['api', 'chat']]) {
-  $('#tab-' + tab).addEventListener('click', () => {
-    $('#tab-' + tab).setAttribute('aria-selected', 'true'); $('#tab-' + other).setAttribute('aria-selected', 'false');
-    $('#panel-' + tab).hidden = false; $('#panel-' + other).hidden = true;
-  });
+$('.types').addEventListener('click', e => {
+  const b = e.target.closest('[data-delta]'); if (!b) return;
+  const inp = $('#' + b.dataset.for);
+  inp.value = Math.min(100, Math.max(0, (parseInt(inp.value) || 0) + +b.dataset.delta));
+  renderPlan();
+});
+
+const PRESETS = {
+  standard: { mc: [10, 50], tf: [5, 20], typed: [3, 30] },
+  mc: { mc: [20, 100], tf: [0, 0], typed: [0, 0] },
+  quick: { mc: [5, 50], tf: [5, 50], typed: [0, 0] },
+  vocab: { mc: [10, 60], tf: [0, 0], typed: [5, 40], mode: 'auto' }
+};
+$$('[data-preset]').forEach(b => b.addEventListener('click', () => {
+  dismissRestore();
+  const pr = PRESETS[b.dataset.preset];
+  for (const k of Object.keys(TYPES)) { $('#n-' + k).value = pr[k][0]; $('#p-' + k).value = pr[k][1]; }
+  if (pr.mode) setRadio('typedMode', pr.mode);
+  renderPlan();
+}));
+
+// Rescale the point totals so they add to exactly 100, keeping their proportions.
+$('#balance').addEventListener('click', () => {
+  const p = plan(), keys = Object.keys(TYPES).filter(k => p[k].count > 0);
+  if (!keys.length) return;
+  let weights = keys.map(k => p[k].points);
+  if (weights.some(w => !w)) weights = keys.map(k => p[k].count);
+  const sum = weights.reduce((a, b) => a + b, 0);
+  const vals = weights.map(w => Math.round(w / sum * 200) / 2);
+  const big = vals.indexOf(Math.max(...vals));
+  vals[big] = Math.round((vals[big] + 100 - vals.reduce((a, b) => a + b, 0)) * 2) / 2;
+  for (const k of Object.keys(TYPES)) $('#p-' + k).value = keys.includes(k) ? vals[keys.indexOf(k)] : 0;
+  renderPlan();
+});
+
+/* ================= step 3: questions ================= */
+function renderPath() {
+  const p = radio('path');
+  $('#aiSetup').hidden = p === 'own';
+  $('#panel-chat').hidden = p !== 'chat';
+  $('#panel-api').hidden = p !== 'api';
+  $('#panel-own').hidden = p !== 'own';
 }
+$$('input[name=path]').forEach(r => r.addEventListener('change', () => { renderPath(); refresh(); }));
 
 function buildPrompt(withMaterials = true) {
-  const p = plan(), mode = document.querySelector('input[name=genMode]:checked').value;
+  const p = plan(), mode = radio('genMode');
   const sources = state.sources.filter(s => s.text.trim());
   if (withMaterials && !sources.length) throw new Error('Add at least one material with text in step 1 first.');
   if (Math.round(planTotal(p) * 100) !== 10000) throw new Error('Set the points in step 2 so they add up to 100.');
@@ -583,38 +895,51 @@ const TOOLS = {
   gemini: { name: 'Gemini', url: 'https://gemini.google.com', copy: 'click the Copy button on the code box' },
   notebooklm: { name: 'NotebookLM', url: 'https://notebooklm.google.com', copy: 'click the Copy button under the reply', attach: true }
 };
-const currentTool = () => TOOLS[document.querySelector('input[name=aiTool]:checked').value];
+const currentTool = () => TOOLS[radio('aiTool')];
 function renderTool() {
   const t = currentTool();
   $('#openTool').href = t.url;
-  $('#openTool').textContent = 'Open ' + t.name + ' in a new tab';
+  $('#openTool').textContent = 'Open ' + t.name + ' in a new tab ↗';
   $('#copyWhere').innerHTML = t.copy;
   if (t.attach) {
     $('#copyExplain').textContent = 'This copies your point plan and instructions. NotebookLM reads your materials itself, so you\'ll add them there in the next step.';
-    $('#openTitle').textContent = 'Open NotebookLM, add your materials, and paste.';
+    $('#openTitle').textContent = 'Open NotebookLM, add your materials, and paste';
     $('#openExplain').innerHTML = 'Click <b>Create new</b> to start a notebook. Add the same files and links you used in step 1 as sources (NotebookLM can read YouTube links directly). Then click in the chat box at the bottom, press Ctrl+V (Cmd+V on a Mac), and press Enter.';
   } else {
     $('#copyExplain').textContent = 'This copies your materials and point plan in one piece. You won\'t see anything change; it\'s saved to your clipboard.';
-    $('#openTitle').textContent = 'Open ' + t.name + ' and paste.';
+    $('#openTitle').textContent = 'Open ' + t.name + ' and paste';
     $('#openExplain').innerHTML = 'Sign in if asked. Click in the message box, press Ctrl+V (Cmd+V on a Mac) to paste, and press Enter to send.';
   }
   $('#copyStatus').textContent = '';
+  $('#w2').classList.remove('done'); $('#w3').classList.remove('done');
 }
-document.querySelectorAll('input[name=aiTool]').forEach(r => r.addEventListener('change', renderTool));
+$$('input[name=aiTool]').forEach(r => r.addEventListener('change', () => { renderTool(); save(); }));
+$('#openTool').addEventListener('click', () => $('#w3').classList.add('done'));
 
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    const t = document.createElement('textarea');
+    t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch {}
+    t.remove(); return ok;
+  }
+}
 async function copyInstructions(withMaterials, st) {
   try {
     const prompt = buildPrompt(withMaterials);
-    await navigator.clipboard.writeText(prompt);
+    if (!await copyText(prompt)) throw new Error('Your browser blocked copying. Click the button again.');
     st.className = 'status ok';
-    st.textContent = 'Copied. Now go to the next step.' + (withMaterials && prompt.length > 20000 ? ' Your materials are long; if the AI won\'t accept them, see "Something went wrong?" below.' : '');
-  } catch (err) { st.className = 'status err'; st.textContent = err.message || 'Your browser blocked copying. Click the button again.'; }
+    st.textContent = '✓ Copied. Now do the next step.' + (withMaterials && prompt.length > 20000 ? ' Your materials are long; if the AI won\'t accept them, see "Something went wrong?" below.' : '');
+    $('#w2').classList.add('done');
+  } catch (err) { st.className = 'status err'; st.textContent = err.message; }
 }
 $('#copyPrompt').addEventListener('click', () => copyInstructions(!currentTool().attach, $('#copyStatus')));
 $('#copyShort').addEventListener('click', () => copyInstructions(false, $('#shortStatus')));
 
 function parseQuestions(raw) {
-  let s = raw.replace(/```json|```/g, '');
+  const s = raw.replace(/```json|```/g, '');
   const a = s.indexOf('{'), b = s.lastIndexOf('}');
   if (a < 0 || b < 0) throw new Error('No question data found. Paste the complete reply, starting with {.');
   const body = s.slice(a, b + 1);
@@ -629,7 +954,7 @@ function parseQuestions(raw) {
     if (type === 'mc') {
       out.choices = (q.choices || []).map(c => String(c).replace(/^\s*\*+\s*|\s*\*+\s*$/g, '').replace(/^[A-Da-d][.)]\s+/, ''));
       out.correct = Math.min(Math.max(0, parseInt(q.correct) || 0), Math.max(0, out.choices.length - 1));
-      if (document.querySelector('input[name=genMode]:checked').value === 'create') shuffleChoices(out);
+      if (radio('genMode') === 'create') shuffleChoices(out);
     }
     if (type === 'tf') out.answer = q.answer === true || String(q.answer).toLowerCase() === 'true';
     if (type === 'typed') out.accepted = (Array.isArray(q.accepted) ? q.accepted : [q.accepted || '']).map(String).filter(Boolean);
@@ -645,11 +970,14 @@ function shuffleChoices(q) {
 }
 
 function loadQuestions(qs, statusEl) {
-  const replace = !state.questions.length || confirm(`Replace the ${state.questions.length} questions in step 4? Choose Cancel to add these to the end instead.`);
+  const replace = !state.questions.length || confirm(`Replace the ${state.questions.length} questions you already have? Choose Cancel to add these to the end instead.`);
   state.questions = replace ? qs : state.questions.concat(qs);
-  renderQuestions(); validate();
-  statusEl.className = 'status ok'; statusEl.textContent = `Loaded ${qs.length} questions. Review them in step 4.`;
-  $('#h4').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  statusEl.className = 'status ok'; statusEl.textContent = `✓ Loaded ${plural(qs.length, 'question')}.`;
+  $('#w5').classList.add('done');
+  renderPlan();
+  go(4);
+  $('#loadedNote').textContent = `✓ Loaded ${plural(qs.length, 'question')}. Read through them below.`;
+  $('#loadedNote').hidden = false;
 }
 
 $('#loadResponse').addEventListener('click', () => {
@@ -677,7 +1005,7 @@ $('#runApi').addEventListener('click', async () => {
   finally { btn.disabled = false; }
 });
 
-/* ---------- step 4: review ---------- */
+/* ================= step 4: review ================= */
 function computePoints() {
   const p = plan(), map = {};
   for (const k of Object.keys(TYPES)) {
@@ -695,19 +1023,19 @@ function blank(type) {
 
 function renderQuestions() {
   const wrap = $('#qlist');
-  if (!state.questions.length) { wrap.innerHTML = '<div class="empty">No questions yet. Load them in step 3, or add your own.</div>'; return; }
+  if (!state.questions.length) { wrap.innerHTML = '<div class="empty">No questions yet. Load them in step 3, or add your own with the buttons below.</div>'; return; }
   const pts = computePoints(), auto = typedMode() === 'auto';
   wrap.innerHTML = state.questions.map((q, i) => {
     let body = '';
     if (q.type === 'mc') {
-      body = `<div role="radiogroup" aria-label="Choices; the correct one is marked with an asterisk">` + q.choices.map((c, j) => `<div class="choice ${q.correct === j ? 'is-correct' : ''}">
+      body = `<label>Answer choices</label><div role="radiogroup" aria-label="Choices; the correct one is marked with an asterisk">` + q.choices.map((c, j) => `<div class="opt ${q.correct === j ? 'is-correct' : ''}">
           <span class="star" aria-hidden="true">${q.correct === j ? '*' : ''}</span>
           <input type="radio" name="c-${q.id}" data-f="correct" value="${j}" ${q.correct === j ? 'checked' : ''} aria-label="Mark choice ${j + 1} correct">
           <input type="text" data-f="choice" data-j="${j}" value="${escHtml(c)}" aria-label="Choice ${j + 1}">
-          <button class="small" data-act="rmchoice" data-j="${j}" aria-label="Remove choice ${j + 1}">Remove</button></div>`).join('') +
-        `</div><button class="small" data-act="addchoice">Add choice</button>`;
+          <button class="link" data-act="rmchoice" data-j="${j}" aria-label="Remove choice ${j + 1}">Remove</button></div>`).join('') +
+        `</div><button class="small" data-act="addchoice">+ Add choice</button>`;
     } else if (q.type === 'tf') {
-      body = `<div class="radios" role="radiogroup" aria-label="Correct answer">
+      body = `<label>Correct answer</label><div class="radios" role="radiogroup" aria-label="Correct answer">
           <label><span class="star" aria-hidden="true">${q.answer ? '*' : ''}</span><input type="radio" name="tf-${q.id}" data-f="tf" value="true" ${q.answer ? 'checked' : ''}> True${q.answer ? ' (correct)' : ''}</label>
           <label><span class="star" aria-hidden="true">${!q.answer ? '*' : ''}</span><input type="radio" name="tf-${q.id}" data-f="tf" value="false" ${!q.answer ? 'checked' : ''}> False${!q.answer ? ' (correct)' : ''}</label></div>`;
     } else if (auto) {
@@ -715,7 +1043,7 @@ function renderQuestions() {
     } else {
       body = `<p class="hint">Students type an answer; you grade it in SpeedGrader.${q.accepted.length ? ' Sample answer: ' + escHtml(q.accepted.join('; ')) : ''}</p>`;
     }
-    return `<article class="q" data-id="${q.id}" data-type="${q.type}">
+    return `<article class="q" id="q-${q.id}" data-id="${q.id}" data-type="${q.type}" style="--c:${COLORS[q.type]}">
       <div class="q-head"><span class="q-num">${i + 1}</span>
         <select data-f="type" aria-label="Question type">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${k === q.type ? 'selected' : ''}>${v}</option>`).join('')}</select>
         <span class="q-pts">${pts[q.id] != null ? fmt(pts[q.id]) : 0} pts</span>
@@ -724,8 +1052,16 @@ function renderQuestions() {
       <label>Question</label><textarea data-f="prompt" rows="2">${escHtml(q.prompt)}</textarea>
       ${body}
       <label>Feedback shown after submitting (optional)</label><input type="text" data-f="feedback" value="${escHtml(q.feedback)}">
+      <ul class="q-issues"></ul>
     </article>`;
   }).join('');
+}
+
+function jumpToQuestion(id) {
+  if (cur !== 4) go(4, false);
+  const el = document.getElementById('q-' + id); if (!el) return;
+  el.scrollIntoView({ behavior: smooth, block: 'center' });
+  (el.querySelector('textarea, input[type=text]') || el).focus({ preventScroll: true });
 }
 
 const qlist = $('#qlist');
@@ -745,16 +1081,17 @@ qlist.addEventListener('change', e => {
     if (f === 'correct') q.correct = +e.target.value; else q.answer = e.target.value === 'true';
     const sel = `.q[data-id="${q.id}"] input[data-f="${f}"][value="${e.target.value}"]`;
     renderQuestions(); document.querySelector(sel)?.focus();
-  }
-  else if (f === 'type') {
+  } else if (f === 'type') {
     const n = blank(e.target.value); n.id = q.id; n.prompt = q.prompt; n.feedback = q.feedback;
-    Object.keys(q).forEach(k => delete q[k]); Object.assign(q, n); renderQuestions();
+    Object.keys(q).forEach(k => delete q[k]); Object.assign(q, n);
+    renderPlan(); return;
   }
   validate();
 });
 qlist.addEventListener('click', e => {
   const act = e.target.dataset.act; if (!act) return;
   const art = e.target.closest('.q'), idx = state.questions.findIndex(x => x.id === art.dataset.id), q = state.questions[idx];
+  if (act === 'del' && !confirm(`Delete question ${idx + 1}?`)) return;
   if (act === 'del') state.questions.splice(idx, 1);
   if (act === 'dup') state.questions.splice(idx + 1, 0, { ...JSON.parse(JSON.stringify(q)), id: uid() });
   if (act === 'addchoice') q.choices.push('');
@@ -762,37 +1099,75 @@ qlist.addEventListener('click', e => {
     const j = +e.target.dataset.j; q.choices.splice(j, 1);
     if (q.correct === j) q.correct = 0; else if (q.correct > j) q.correct--;
   }
-  renderQuestions(); validate();
+  renderPlan();
 });
-document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
-  state.questions.push(blank(b.dataset.add)); renderQuestions(); validate();
-  qlist.lastElementChild.querySelector('textarea').focus();
+$$('[data-add]').forEach(b => b.addEventListener('click', () => {
+  const n = blank(b.dataset.add);
+  state.questions.push(n); renderPlan();
+  const el = document.getElementById('q-' + n.id);
+  el.scrollIntoView({ behavior: smooth, block: 'center' });
+  el.querySelector('textarea').focus({ preventScroll: true });
 }));
 
-/* ---------- step 5: validation & export ---------- */
-function validate() {
-  const p = plan(), probs = [], warns = [];
-  if (!$('#quizTitle').value.trim()) probs.push('Add a quiz title.');
-  if (!state.questions.length) probs.push('Add at least one question in step 4.');
-  if (Math.round(planTotal(p) * 100) !== 10000) probs.push('Points in step 2 must add up to 100.');
+function renderSummary(qIssues) {
+  const box = $('#summary');
+  box.hidden = !state.questions.length;
+  if (box.hidden) return;
+  const p = plan(), pts = computePoints();
+  const parts = Object.keys(TYPES).filter(k => p[k].count || state.questions.some(q => q.type === k)).map(k => {
+    const n = state.questions.filter(q => q.type === k).length, off = p[k].count && n !== p[k].count;
+    return `<div class="sum-item"><span class="swatch" style="background:${COLORS[k]}"></span><span><b>${n}</b> ${TYPES[k].toLowerCase()}${p[k].count ? ` <span class="${off ? 'off' : 'hint'}">of ${p[k].count} planned</span>` : ''}</span></div>`;
+  });
+  const total = Object.values(pts).reduce((a, b) => a + b, 0);
+  const bad = state.questions.filter(q => (qIssues[q.id] || []).length);
+  const status = bad.length
+    ? `<button class="small" data-fixq="${bad[0].id}">${plural(bad.length, 'question')} need${bad.length === 1 ? 's' : ''} attention. Show me</button>`
+    : '<span class="chip ok">✓ No problems</span>';
+  box.innerHTML = parts.join('') + `<div class="sum-item"><b>${fmt(total)}</b>&nbsp;points</div>` + status;
+}
+
+/* ================= step 5: checks & export ================= */
+function getIssues() {
+  const p = plan(), probs = [], warns = [], qIssues = {};
+  if (!$('#quizTitle').value.trim()) probs.push({ text: 'Add a quiz title above.', focus: 'quizTitle' });
+  if (!state.questions.length) probs.push({ text: 'Add at least one question.', step: 3 });
+  if (Math.round(planTotal(p) * 100) !== 10000) probs.push({ text: 'Points must add up to 100.', step: 2 });
   for (const k of Object.keys(TYPES)) {
     const n = state.questions.filter(q => q.type === k).length;
-    if (n && !p[k].points) probs.push(`You have ${TYPES[k].toLowerCase()} questions but that type is worth 0 points in step 2.`);
-    if (!n && p[k].points && state.questions.length) probs.push(`${TYPES[k]} is worth ${fmt(p[k].points)} points, but there are no ${TYPES[k].toLowerCase()} questions. Add some or move those points in step 2.`);
+    if (n && !p[k].points) probs.push({ text: `You have ${TYPES[k].toLowerCase()} questions, but that type is worth 0 points.`, step: 2 });
+    if (!n && p[k].points && state.questions.length) probs.push({ text: `${TYPES[k]} is worth ${fmt(p[k].points)} points, but there are no ${TYPES[k].toLowerCase()} questions. Add some, or move those points in step 2.`, step: 2 });
     if (n && p[k].count && n !== p[k].count) warns.push(`You planned ${p[k].count} ${TYPES[k].toLowerCase()} but have ${n}. Their ${fmt(p[k].points)} points are split across the ${n}, so the quiz still totals 100.`);
   }
   state.questions.forEach((q, i) => {
-    const num = 'Question ' + (i + 1);
-    if (!q.prompt.trim()) probs.push(num + ' has no question text.');
+    const list = qIssues[q.id] = [];
+    if (!q.prompt.trim()) list.push('Add the question text.');
     if (q.type === 'mc') {
-      if (q.choices.filter(c => c.trim()).length < 2) probs.push(num + ' needs at least two choices.');
-      if (!(q.choices[q.correct] || '').trim()) probs.push(num + ': the choice marked correct is empty.');
+      if (q.choices.filter(c => c.trim()).length < 2) list.push('Add at least two answer choices.');
+      if (!(q.choices[q.correct] || '').trim()) list.push('The choice marked correct is empty.');
     }
-    if (q.type === 'typed' && typedMode() === 'auto' && !q.accepted.length) probs.push(num + ' needs at least one accepted answer.');
+    if (q.type === 'typed' && typedMode() === 'auto' && !q.accepted.length) list.push('Add at least one accepted answer.');
+    list.forEach(t => probs.push({ text: `Question ${i + 1}: ${t}`, qid: q.id }));
   });
-  $('#problems').innerHTML = probs.map(x => `<li>${escHtml(x)}</li>`).join('');
-  $('#warnings').innerHTML = warns.map(x => `<li>${escHtml(x)}</li>`).join('');
+  return { probs, warns, qIssues };
+}
+
+function validate() {
+  const { probs, warns, qIssues } = getIssues();
+  $$('#qlist .q').forEach(a => {
+    const list = qIssues[a.dataset.id] || [];
+    a.classList.toggle('has-issue', list.length > 0);
+    a.querySelector('.q-issues').innerHTML = list.map(x => `<li>${escHtml(x)}</li>`).join('');
+  });
+  const fix = x => x.qid ? ` <button class="link" data-fixq="${x.qid}">Show me</button>`
+    : x.step ? ` <button class="link" data-gostep="${x.step}">Go to step ${x.step}</button>`
+    : x.focus ? ` <button class="link" data-focus="${x.focus}">Fix</button>` : '';
+  $('#checklist').innerHTML = (probs.length
+    ? probs.map(x => `<li class="bad"><span aria-hidden="true">✕</span><span>${escHtml(x.text)}${fix(x)}</span></li>`).join('')
+    : `<li class="good"><span aria-hidden="true">✓</span><span>Everything checks out: ${plural(state.questions.length, 'question')}, 100 points.</span></li>`)
+    + warns.map(x => `<li class="note"><span aria-hidden="true">i</span><span>${escHtml(x)}</span></li>`).join('');
   $('#exportBtn').disabled = probs.length > 0;
+  renderSummary(qIssues);
+  refresh();
   return !probs.length;
 }
 $('#quizTitle').addEventListener('input', validate);
@@ -866,10 +1241,71 @@ ${state.questions.map((q, i) => itemXml(q, i, pts[q.id])).join('\n')}
   a.download = (title.replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') || 'quiz') + '_canvas_qti.zip';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  state.downloaded = true;
+  $('#exportStatus').className = 'status ok';
+  $('#exportStatus').textContent = `✓ Downloaded ${a.download}. Now import it into Canvas with the steps below.`;
+  $('#importCard').scrollIntoView({ behavior: smooth, block: 'start' });
+  refresh();
 });
 
+/* ================= autosave & restore ================= */
+const KEY = 'm2cq-session-v2';
+let saveTimer = null, pendingRestore = false, saved = null;
+try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
+if (saved && ((saved.questions || []).length || (saved.sources || []).length)) pendingRestore = true;
+
+function snapshot() {
+  return {
+    sources: state.sources.filter(s => !s.status.endsWith('…')),
+    questions: state.questions,
+    plan: Object.fromEntries($$('.types input[type=number]').map(i => [i.id, i.value])),
+    typedMode: radio('typedMode'), genMode: radio('genMode'), path: radio('path'), aiTool: radio('aiTool'),
+    notes: $('#notes').value, title: $('#quizTitle').value, step: cur, at: Date.now()
+  };
+}
+function save() {
+  if (pendingRestore) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(KEY, JSON.stringify(snapshot())); }
+    catch { try { const s = snapshot(); s.sources = []; localStorage.setItem(KEY, JSON.stringify(s)); } catch {} }
+  }, 400);
+}
+function dismissRestore() {
+  if (!pendingRestore) return;
+  pendingRestore = false; $('#restoreBanner').hidden = true; save();
+}
+function restore(d) {
+  state.sources = d.sources || []; state.questions = d.questions || [];
+  for (const [id, v] of Object.entries(d.plan || {})) { const el = document.getElementById(id); if (el) el.value = v; }
+  ['typedMode', 'genMode', 'path', 'aiTool'].forEach(n => d[n] && setRadio(n, d[n]));
+  $('#notes').value = d.notes || ''; $('#quizTitle').value = d.title || '';
+  pendingRestore = false; $('#restoreBanner').hidden = true;
+  renderTool(); renderPath(); renderSources(); renderPlan(); go(d.step || 1);
+}
+$('#restoreYes').addEventListener('click', () => restore(saved));
+$('#restoreNo').addEventListener('click', dismissRestore);
+['input', 'change'].forEach(ev => document.addEventListener(ev, e => { if (pendingRestore && !e.target.closest('#restoreBanner')) dismissRestore(); }, true));
+
+$('#startOver').addEventListener('click', () => {
+  if (!confirm('Clear everything (materials, questions, and settings) and start over?')) return;
+  clearTimeout(saveTimer); pendingRestore = true;
+  try { localStorage.removeItem(KEY); } catch {}
+  location.reload();
+});
+
+/* ================= start ================= */
 renderTool();
+renderPath();
+renderSources();
 renderPlan();
+go(1, false);
+if (pendingRestore) {
+  const nq = (saved.questions || []).length, ns = (saved.sources || []).length;
+  const when = new Date(saved.at).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  $('#restoreText').textContent = `You have unfinished work from ${when}: ${plural(ns, 'material')} and ${plural(nq, 'question')}.`;
+  $('#restoreBanner').hidden = false;
+}
 </script>
 </body>
 </html>
